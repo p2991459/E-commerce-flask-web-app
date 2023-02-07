@@ -14,7 +14,7 @@ Automatically Fullfill the orders and create product catalogue using our simple 
 3. Install the requirements by creating new virtualenv
 
 
-4. Connect your databse and migrate the data using "flask db migrate -m "Initial migration.".
+4. Connect to the database and migrate the data using "flask db migrate -m "Initial migration.".
 
 5. Create .env and fill required values.
 
