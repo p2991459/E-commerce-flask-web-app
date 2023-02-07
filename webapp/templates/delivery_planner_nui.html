@@ -1,0 +1,340 @@
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Planning of the
+            project</h1>
+    </div>
+
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-12 mb-8">
+
+            <!-- Project Card -->
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Manual planning</h6>
+                </div>
+                <div class="card-body">
+                    <button id="btn-add-manual-plan">Add a plan</button>
+                    <div class="mt-3 mb-3"><span id="total_orders"></span><span id="total_orders"></span></div>
+                    <div class="table-responsive">
+                    <table class="table display responsive table-bordered" id="dataTableManualPlanning"
+                           cellspacing="0" width="100%">
+                        <thead>
+                            <th>
+                                <input name="select_all" value="1" class="dt-select-all" type="checkbox" />
+                            </th>
+                            <th>Date</th>
+                            <th>Zone</th>
+                            <th>Total orders</th>
+                            <th>Reschedule zones</th>
+                            <th>#</th>
+                            <th>Action</th>
+                        </thead>
+                        <tbody>
+                        {% for mp in manual_plans %}
+                        <tr>
+                            <td></td>
+                            <td>{{ mp.schedule_date }}</td><td>
+                            {% set list1 = mp.zones.split(',') %}
+                            {% set gcnt = 0 %}
+                            {% set vars = {'gcnt': 0, 'cnt': 0} %}
+                            {% for item in list1 %}
+                                {% if vars.update({'cnt': 0}) %} {% endif %}
+                                {% for oz in orders_per_zone %}
+                                    {% if oz.zone == item|trim %}
+                                        {% if vars.update({'cnt': oz.cnt}) %} {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ item|trim }} -- {{ vars.cnt }},
+                                {% if vars.update({'gcnt': vars.gcnt + vars.cnt}) %} {% endif %}
+                            {% endfor %}
+                        </td><td>{{ vars.gcnt }}</td><td>{{ mp.reschedule_zones }}</td>
+                        <td>{{ mp.id }}</td>
+                        <td><a href="#" class="delete-manual-plan" data-value="{{ mp.id }}">X</a></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <th>
+                                <input name="select_all" value="1" class="dt-select-all" type="checkbox" />
+                            </th>
+                            <th>Date</th>
+                            <th>Zone</th>
+                            <th>Total orders</th>
+                            <th>Reschedule zones</th>
+                            <th>#</th>
+                            <th>Action</th>
+                        </tfoot>
+                    </table>
+                </div>
+                </div>
+            </div>
+            <div class="mt-4 mb-4"></div>
+            <style>
+                .pc-header {
+                    font-weight: bold;
+                    font-size: 16px;
+                }
+                .pc-label-ap {
+                    display: inline;
+                }
+                .pc-input-ap {
+                    margin-top: 15px;
+                }
+                .pc-padding-8 {
+                    padding: 8px;
+                }
+                .pc-td-content {
+                    padding: 10px 30px;
+                }
+            </style>
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Automated plan settings</h6>
+                </div>
+                <form method="post" id="automated_plan_settings_form">
+
+                <input type="hidden" name="form" value="automated_plan_settings" />
+                <div class="card-body">
+                    <div class="col-sm-12 pc-input-field">
+                     <div style="overflow-x:auto;">
+                        <table class="table-responsive">
+                            <tr><th>Product name</th><th class="pc-td-content">Cut off time</th><th class="pc-td-content">Manual / Automated</th></tr>
+                        {% for product in data.data %}
+                            {% set ap_setting = product_ap_settings_dict.get(product.productId, None) %}
+                            <tr>
+                            <td>{{ product.product_name }}</td>
+                                <td class="pc-td-content"><select class="products" type="text" id="inp_{{ product.productId }}" name="inp_{{ product.productId }}">
+                                    {% for k,v in hours_seconds_dict.items() %}
+                                    <option value="{{ v }}" {% if ap_setting and ap_setting.cut_off_time == v%}selected{% elif ap_setting is none and v == 86400 %}selected{% endif %}>{{ k }}</option>
+                                    {% endfor %}
+                                </select></td>
+                            <td class="pc-td-content"><input type="radio" class="pc-padding-8" name="rad_{{ product.productId }}" value="manual" id="manual_{{ product.productId }}" {% if not ap_setting.automated_scheduling %} checked aria-checked="true" {% endif %} />&nbsp;<label for="manual_{{ product.productId }}">Manual</label>&nbsp;&nbsp;&nbsp;<input type="radio" name="rad_{{ product.productId }}" value="auto" id="auto_{{ product.productId }}" {% if ap_setting.automated_scheduling %}checked aria-checked="true"{% endif %} />&nbsp;<label for="auto_{{ product.productId }}">Automatic</label></td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                     </div>
+                    </div>
+                </div>
+                <div class="card-body col-sm-12">
+                    <input type="submit" value="Save" id="save_automated_plan_settings" />
+                </div>
+                </form>
+            </div>
+
+            <div class="mt-4 mb-4"></div>
+
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Automated planning</h6>
+                </div>
+                <form method="post" id="automated_plan_form">
+                <input type="hidden" name="form" value="automated_plan" />
+                <input type="hidden" name="selected_drivers" id="selected_drivers" value="" />
+                <input type="hidden" name="selected_products"  id="selected_products" value="" />
+                <input type="hidden" name="selected_delivery_zones" id="selected_delivery_zones" value="" />
+                <div class="card-body">
+                    <div class="col-sm-12 pc-input-field">
+                        <label for="project_name" class="pc-header">Select a product</label>
+{#                        <select name="productId" id="productId" class="form-control col-sm-7 col-xs-10">#}
+                        {% for product in data.data %}<br/>
+                            <input class="products pc-input-ap" type="checkbox" id="chk_products_{{ product.productId }}"
+                                   name="chk_products_{{ product.productId }}"
+                                   value="{{product.productId }}" />&nbsp;
+                            <label class="pc-label-ap" for="chk_products_{{ product.productId }}">{{ loop.index }}.
+                                <u>{{ product.product_name }}</u>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <div class="col-sm-12 pc-input-field">
+                        <label for="drivers" class="pc-header">Select the drivers</label>
+                            {% for driver in existing_drivers %}<br/>
+                                <input class="drivers pc-input-ap" type="checkbox" id="chk_driver_{{ driver.id }}"
+                                       name="chk_driver_{{ driver }}"
+                                       value="{{ driver.id }}" />&nbsp;
+                                <label class="pc-label-ap" for="chk_driver_{{ driver.id }}">{{ loop.index }}.
+                                    <u>{{ driver.driver_name }}</u> -- {{ driver.working_hours }}
+                                </label>
+                            {% endfor %}
+                    </div>
+                    <div class="col-sm-12 pc-input-field">
+                        <label for="delivery_zones" class="pc-header">Select the delivery_zones to be covered</label>
+                            <a href="" id="select_all_delivery_zones">Select all</a>&nbsp;&nbsp;&nbsp;
+                            <a href="" id="unselect_all_delivery_zones">Unselect all</a>
+                            {% for dz in delivery_zones %}<br/>
+                                <input class="delivery_zones pc-input-ap pc-zone-chk" type="checkbox" id="chk_zone_{{ dz.id }}"
+                                       name="{{ dz.zone }}"
+                                       value="{{ dz.zone }}" />&nbsp;
+                                <label class="pc-label-ap" for="chk_zone_{{ dz.id }}">{{ loop.index }}.
+                                    <u>{{ dz.zone }}</u> -- {{ dz.zips }}
+                                </label>
+                            {% endfor %}
+                    </div>
+                    <div class="col-sm-12 pc-input-field">
+                        <label for="max_stops">Max stops to be scheduled for this day</label>
+                        <input type="text" name="max_stops" id="max_stops" value="{{ max_stops }}" />
+                    </div>
+                    <div class="col-sm-12 pc-input-field">
+                        <label for="delivery_date">Delivery Date</label>
+                        <input type="text" name="delivery_date" id="delivery_date" value="{{ delivery_date }}" />
+                    </div>
+                    <div class="col-sm-12 pc-input-field">
+                        <button onclick="checkAndSubmit()">Add a delivery date</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+
+            <div class="mt-4 mb-4"></div>
+
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Existing Automated Plans</h6>
+                </div>
+                {% if automated_plans|length > 0 %}
+                <div class="card-body">
+                    <div class="table-responsive">
+                    <table class="table display responsive table-bordered" id="dataTableExistingAutomatedPlans"
+                           cellspacing="0" width="100%">
+                        <thead><td>Date</td><td>Zone</td><td>Products</td><td>Drivers</td><td>Routific Project id</td><td>#</td><td>Action</td></thead>
+                        <tbody>
+                        {% for ap in automated_plans %}
+                            <tr><td>{{ ap.delivery_date.strftime('%m-%d-%Y') }}</td><td>
+                                {% for zone in ap.delivery_zones %}
+                                    {{ zone.zone }},
+                                {% endfor %}
+                            </td><td>
+                                {% for p in ap.products %}
+                                    {{ p.product_name }},
+                                {% endfor %}</td><td>
+                                {% for d in ap.drivers %}
+                                    {{ d.driver_name }},
+                                {% endfor %}
+                            </td>
+                            <td>{{ ap.routific_project_id }}</td>
+                            <td>{{ ap.id }}</td>
+                            <td><a href="#" class="delete-automated-plan" data-value="{{ ap.id }}">X</a></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot><td>Date</td><td>Zone</td><td>Products</td><td>Drivers</td><td>Routific Project id</td><td>#</td><td>Action</td></tfoot>
+                    </table>
+                </div>
+                </div>
+                {% else %}
+                    <div class="card-body">No automated plans exist</div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    <style>
+        .chk_zones_mp_ul {
+        list-style: none;
+        -webkit-column-count: 1;
+        -moz-column-count: 1;
+        column-count: 1;
+    }
+    </style>
+<div class="modal fade" id="addManualPlanModal" tabindex="-1" role="dialog" aria-labelledby="addManualPlanModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addManualPlanModalLabel">Enter plan details</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                <table>
+                    <tr id="tr-plan-id" class="d-none"><td><label for="cnz_zone_name">Plan #:</label></td><td><input type="text" id="plan_id" disabled/></td></tr>
+                    <tr><td><label for="cnz_zone_name">Date:</label></td><td><input type="text" id="mp_date"/></td></tr>
+                    <tr><td><label for="chk_zones_mp_ul">Zones:</label></td><td>
+                        <ul class="chk_zones_mp_ul" id="chk_zones_mp_ul">
+                            {% for oz in orders_per_zone %}
+                                <li>
+                                <input class='chk_zones_mp' type='checkbox' name='{{ oz.zone }}' value='{{ oz.zone }}' />&nbsp;&nbsp;<label for='chk_zone_mp_{{ oz.cnt }}'>{{ oz.zone }} ({{ oz.cnt }})</label>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td></tr>
+                    <tr><td><label for="chk_reschedule_zones_mp">Reschedule Zones:</label></td><td>
+                        <ul class="chk_zones_mp_ul">
+                            {% for oz in orders_per_zone %}
+                                <li>
+                                <input class='chk_zones_mp_rz' type='checkbox' name='rz-{{ oz.zone }}' value='{{ oz.zone }}' />&nbsp;&nbsp;<label for='chk_zone_mp_rz_{{ oz.cnt }}'>{{ oz.zone }} ({{ oz.cnt }})</label>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td></tr>
+                </table>
+            </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-add-manual-plan-now">Add</button>
+                <button class="btn btn-primary d-none" id="btn-edit-manual-plan-now">Edit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    jQuery(document).ready(function() {
+        jQuery("#delivery_date").datepicker();
+        jQuery('.drivers').each(function() {
+            jQuery(this).on('change', function() {
+                let count = 0;
+                jQuery('.drivers').each(function() {
+                    if(jQuery(this).prop('checked')) {
+                        console.log("this is checked");
+                        count += 1;
+                    }
+                    //if (jQuery("#max_stops").val(count * 40).trim() === '')
+                    {
+                        jQuery("#max_stops").val(count * 40);
+                    }
+                });
+            });
+            console.log(jQuery(this).prop('checked'));
+        });
+    });
+    function checkAndSubmit() {
+        let selectedDrivers = '';
+        let selectedDeliveryZones = '';
+        let selectedProducts = '';
+        jQuery('.drivers').each(function() {
+         if(jQuery(this).prop('checked')) {
+            selectedDrivers += jQuery(this).val() + ',';
+         }
+        });
+        jQuery('.delivery_zones').each(function() {
+         if(jQuery(this).prop('checked')) {
+            selectedDeliveryZones += jQuery(this).val() + ',';
+         }
+        });
+        jQuery('.products').each(function() {
+         if(jQuery(this).prop('checked')) {
+            selectedProducts += jQuery(this).val() + ',';
+         }
+        });
+        if (selectedDrivers.endsWith(',')) {
+            selectedDrivers = selectedDrivers.slice(0, -1);
+        }
+        if (selectedProducts.endsWith(',')) {
+            selectedProducts = selectedProducts.slice(0, -1);
+        }
+        if (selectedDeliveryZones.endsWith(',')) {
+            selectedDeliveryZones = selectedDeliveryZones.slice(0, -1);
+        }
+        jQuery("#selected_drivers").val(selectedDrivers);
+        jQuery("#selected_delivery_zones").val(selectedDeliveryZones);
+        jQuery("#selected_products").val(selectedProducts);
+        jQuery("#automated_plan_form").submit();
+    }
+</script>
+{% endblock %}

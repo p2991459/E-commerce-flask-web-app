@@ -1,0 +1,710 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    {% include "_tab_styles.html" %}
+    <style>
+        #filter_div {
+            margin: 25px 15px;
+        }
+
+        #active_grants {
+            min-height: 0 !important;
+        }
+
+        #pending_grants {
+            min-height: 0 !important;
+        }
+
+        .pc-margin-bottom-30 {
+            margin-bottom: 30px;
+        }
+
+        .pc-grant-text {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .pc-vertical-space {
+            height: 40px !important;
+        }
+
+        .pc-maxwidth-600 {
+            max-width: 600px !important;
+        }
+        .table-bordered, .table-bordered td, .table-bordered th,
+        .table thead th {
+            border-color: #ccc;
+        }
+        .force-inline {
+            display: inline-block !important;
+        }
+        @media only screen and (max-width: 768px){
+            .pc-mobile-vertical-space {
+                height: 40px !important;
+                width: 1px !important;
+            }
+        }
+    </style>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-success">
+                {% for msg in messages %}
+                <li>{{ msg }}</li>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Grants</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-3 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Metrics</div>
+                            <div class="h5 mb-0 text-gray-600">The year to date grant amount</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="pc-grant-text text-gray-900">{{ "${:,.2f}".format(grant_metrics["year_to_date_amount"]) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="pc-mobile-vertical-space"></div>
+        <div class="col-xl-3 col-md-3 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Pending Grant Amount</div>
+                            <div class="h5 mb-0 text-gray-600">Current pending grant total amount</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="pc-grant-text text-gray-900">{{ "${:,.2f}".format(grant_metrics["pending_grant_amount"]) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="pc-mobile-vertical-space"></div>
+        <div class="col-xl-3 col-md-3 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Rejected Grant Amount</div>
+                            <div class="h5 mb-0 text-gray-600">Current Rejected grant total amount</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="pc-grant-text text-gray-900">{{ "${:,.2f}".format(grant_metrics["rejected_grant_amount"]) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="pc-mobile-vertical-space"></div>
+        <div class="col-xl-3 col-md-3 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Winning Percentage
+                            </div>
+                            <div class="h5 mb-0 text-gray-600">Successful grants to total number of applied grants</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="pc-grant-text text-gray-900">{{ '%0.2f'| format(grant_metrics["winning_percentage"]|float) }} %</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="pc-vertical-space"></div>
+
+    <div class="card shadow mb-8">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">List of Grants</h6>
+        </div>
+        <div class="card-body">
+            <a class="btn btn-outline-dark mt-1 pc-margin-bottom-30 force-inline {%  if 'show=archived' in request.url %}active{% endif %}" href="/grants?show=archived">Show archived</a>
+            <a class="btn btn-outline-dark mt-1 pc-margin-bottom-30 force-inline {%  if 'show=all' in request.url %}active{% endif %}" href="/grants?show=all">Show all</a>
+            <button id="btn-add-grant" class="btn btn-outline-dark mt-1 pc-margin-bottom-30 float-right ml-1">Add a grant</button>
+            <button id="" class="btn btn-outline-dark mt-1 pc-margin-bottom-30 float-right" onclick="window.open('https://drive.google.com/drive/folders/1fY3OZMaehbsGAwqHtfTdpNSohU4ZY78r')">Essential Grantmaking Documents</button>
+            <div class="tabs">
+                <ul class="tabs-list">
+                    <li class="active"><a href="#active_grants">Active</a></li>
+                    <li><a href="#pending_grants">Pending</a></li>
+                    <li><a href="#rejected_grants">Rejected</a></li>
+                </ul>
+                <div class="tab active" id="active_grants">
+                    <div class="col-sm-12 pc-input-field">
+                        <div class="table-responsive" id="grants_target_table"></div>
+                        {% if active_grants %}
+                            <div class="column is-8 is-offset-2">
+                                <h3 class="title">Active grants</h3>
+                                <div class="">
+                                    <table class="table display responsive table-responsive table-bordered"
+                                           style="width: 100%;" id="grants_table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Grant Name</th>
+                                            <th scope="col">Contact Person</th>
+                                            <th scope="col">Handled By</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">Website</th>
+                                            <th scope="col">Amount</th>
+                                            <th scope="col">Application Due Date</th>
+                                            <th scope="col">Approved / rejected date</th>
+                                            <th scope="col">Report due date</th>
+                                            <th scope="col">Completed (Y/N)</th>
+                                            <th scope="col">Report Completed (Y/N)</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for ag, ag_u in active_grants %}
+                                            <tr>
+                                                <td>{{ loop.index }}</td>
+                                                <td>{{ ag.name }}</td>
+                                                <td>{{ ag.contact_person }}</td>
+                                                <td>{{ ag_u.name }}</td>
+                                                <td>{{ ag.email }}</td>
+                                                <td>{{ ag.phone }}</td>
+                                                <td>{% if ag.website %}
+                                                    <a href="{% if ag.website.startswith('http://') or ag.website.startswith('https://') %}{{ ag.website }}{% else %}https://{{ ag.website }}{% endif %}" target="_blank">{{ ag.website }}</a>
+                                                    {% else %}{% endif %}
+                                                </td>
+                                                <td>{{ ag.amount }}</td>
+                                                <td>{% if ag.application_due_date %}{{ ag.application_due_date }}{% else %}{% endif %}</td>
+                                                <td>{{ ag.approved_rejected_date }}</td>
+                                                <td>{{ ag.report_due_date }}</td>
+                                                <td>{{ ag.completed }}</td>
+                                                <td>{{ ag.report_completed or '' }}</td>
+                                                <td><a class="edit" href="#"
+                                                       data-id="{{ ag.id }}" data-handled_by="{{ ag_u.id }}" data-website="{% if ag.website %}{{ ag.website }}{% endif %}">✎ </a>&nbsp;
+                                                    {% if ag.archived != 1 and ag.completed == 'Y' %}<a href="/grants?grant_action=edit&id={{ ag.id }}&archive=true" onclick="return confirm('Are you sure to archive grant {{ ag.name }}?')">📁</a>&nbsp;{% endif %}
+                                                    <a class="delete" href="#"
+                                                       data-id="{{ ag.id }}" data-name="{{ ag.name }}">x</a></td>
+                                            </tr>
+                                        {% endfor %}</tbody>
+                                        <tfoot>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Grant Name</th>
+                                            <th scope="col">Contact Person</th>
+                                            <th scope="col">Handled By</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">Website</th>
+                                            <th scope="col">Amount</th>
+                                            <th scope="col">Application Due Date</th>
+                                            <th scope="col">Approved / rejected date</th>
+                                            <th scope="col">Report due date</th>
+                                            <th scope="col">Completed (Y/N)</th>
+                                            <th scope="col">Report Completed (Y/N)</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div>No active grants</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="tab" id="pending_grants">
+                    <div class="col-sm-12 pc-input-field">
+                        <div class="table-responsive" id="pending_grants_target_table"></div>
+                        {% if pending_grants %}
+                            <div class="column is-8 is-offset-2">
+                                <h3 class="title">Pending grants</h3>
+                                <div class="">
+                                    <table class="table display responsive table-responsive table-bordered"
+                                           style="width: 100%;" id="pending_grants_table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Grant Name</th>
+                                            <th scope="col">Contact Person</th>
+                                            <th scope="col">Handled By</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">Website</th>
+                                            <th scope="col">Amount</th>
+                                            <th scope="col">Application Due Date</th>
+                                            <th scope="col">Approved / rejected date</th>
+                                            <th scope="col">Report due date</th>
+                                            <th scope="col">Completed (Y/N)</th>
+                                            <th scope="col">Report Completed (Y/N)</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for pg, pg_u in pending_grants %}
+                                            <tr>
+                                                <td>{{ loop.index }}</td>
+                                                <td>{{ pg.name }}</td>
+                                                <td>{{ pg.contact_person }}</td>
+                                                <td>{{ pg_u.name }}</td>
+                                                <td>{{ pg.email }}</td>
+                                                <td>{{ pg.phone }}</td>
+                                                <td>{% if pg.website %}
+                                                    <a href="{% if pg.website.startswith('http://') or pg.website.startswith('https://') %}{{ pg.website }}{% else %}https://{{ pg.website }}{% endif %}" target="_blank">{{ pg.website }}</a>
+                                                    {% else %}
+                                                    {{ pg.website }}
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ pg.amount }}</td>
+                                                <td>{% if pg.application_due_date %}{{ pg.application_due_date }}{% else %}{% endif %}</td>
+                                                <td>{{ pg.approved_rejected_date }}</td>
+                                                <td>{{ pg.report_due_date }}</td>
+                                                <td>{{ pg.completed }}</td>
+                                                <td>{{ pg.report_completed or '' }}</td>
+                                                <td><a class="edit" href="#"
+                                                       data-id="{{ pg.id }}" data-handled_by="{{ pg_u.id }}" data-website="{% if pg.website %}{{ pg.website }}{% endif %}">✎ </a>&nbsp;
+                                                    {% if pg.archived != 1 and pg.completed == 'Y' %}<a href="/grants?grant_action=edit&id={{ pg.id }}&archive=true" onclick="return confirm('Are you sure to archive grant {{ pg.name }}?')">📁</a>&nbsp;{% endif %}
+                                                    <a class="delete" href="#"
+                                                       data-id="{{ pg.id }}" data-name="{{ pg.name }}">x</a></td>
+                                            </tr>
+                                        {% endfor %}</tbody>
+                                        <tfoot>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Grant Name</th>
+                                            <th scope="col">Contact Person</th>
+                                            <th scope="col">Handled By</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">Website</th>
+                                            <th scope="col">Amount</th>
+                                            <th scope="col">Application Due Date</th>
+                                            <th scope="col">Approved / rejected date</th>
+                                            <th scope="col">Report due date</th>
+                                            <th scope="col">Completed (Y/N)</th>
+                                            <th scope="col">Report Completed (Y/N)</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div>No pending grants</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="tab" id="rejected_grants">
+                    <div class="col-sm-12 pc-input-field">
+                        <div class="table-responsive" id="rejected_grants_target_table"></div>
+                        {% if rejected_grants %}
+                            <div class="column is-8 is-offset-2">
+                                <h3 class="title">Rejected grants</h3>
+                                <div class="">
+                                    <table class="table display responsive table-responsive table-bordered"
+                                           style="width: 100%;" id="rejected_grants_table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Grant Name</th>
+                                            <th scope="col">Contact Person</th>
+                                            <th scope="col">Handled By</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">Website</th>
+                                            <th scope="col">Amount</th>
+                                            <th scope="col">Application Due Date</th>
+                                            <th scope="col">Approved / rejected date</th>
+                                            <th scope="col">Report due date</th>
+                                            <th scope="col">Completed (Y/N)</th>
+                                            <th scope="col">Report Completed (Y/N)</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for pg, pg_u in rejected_grants %}
+                                            <tr>
+                                                <td>{{ loop.index }}</td>
+                                                <td>{{ pg.name }}</td>
+                                                <td>{{ pg.contact_person }}</td>
+                                                <td>{{ pg_u.name }}</td>
+                                                <td>{{ pg.email }}</td>
+                                                <td>{{ pg.phone }}</td>
+                                                <td>{% if pg.website %}
+                                                    <a href="{% if pg.website.startswith('http://') or pg.website.startswith('https://') %}{{ pg.website }}{% else %}https://{{ pg.website }}{% endif %}" target="_blank">{{ pg.website }}</a>
+                                                    {% else %}
+                                                    {{ pg.website }}
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ pg.amount }}</td>
+                                                <td>{% if pg.application_due_date %}{{ pg.application_due_date }}{% else %}{% endif %}</td>
+                                                <td>{{ pg.approved_rejected_date }}</td>
+                                                <td>{{ pg.report_due_date }}</td>
+                                                <td>{{ pg.completed }}</td>
+                                                <td>{{ pg.report_completed or '' }}</td>
+                                                <td><a class="edit" href="#"
+                                                       data-id="{{ pg.id }}" data-handled_by="{{ pg_u.id }}" data-website="{% if pg.website %}{{ pg.website }}{% endif %}">✎ </a>&nbsp;
+                                                    {% if pg.archived != 1 and pg.completed == 'Y' %}<a href="/grants?grant_action=edit&id={{ pg.id }}&archive=true" onclick="return confirm('Are you sure to archive grant {{ pg.name }}?')">📁</a>&nbsp;{% endif %}
+                                                    <a class="delete" href="#"
+                                                       data-id="{{ pg.id }}" data-name="{{ pg.name }}">x</a></td>
+                                            </tr>
+                                        {% endfor %}</tbody>
+                                        <tfoot>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Grant Name</th>
+                                            <th scope="col">Contact Person</th>
+                                            <th scope="col">Handled By</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">Website</th>
+                                            <th scope="col">Amount</th>
+                                            <th scope="col">Application Due Date</th>
+                                            <th scope="col">Approved / rejected date</th>
+                                            <th scope="col">Report due date</th>
+                                            <th scope="col">Completed (Y/N)</th>
+                                            <th scope="col">Report Completed (Y/N)</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div>No rejected grants</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="filter_div"></div>
+
+
+
+    <div class="modal fade" id="tableModalGrant" tabindex="-1" role="dialog" aria-labelledby="tableModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog pc-maxwidth-600" role="document">
+            <div class="modal-content">
+                <form action="" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tableModalLabel">Grant</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table-responsive">
+                            <tr>
+                                <td><label for="name">Name:</label></td>
+                                <td><input type="text" name="name" id="name" value="{{ grant.name if grant else '' }}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="contact_person">Contact Person:</label></td>
+                                <td><input type="text" name="contact_person" id="contact_person"
+                                           value="{{ grant.contact_person if grant else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="handled_by">Handled By:</label></td>
+                                <td><select name="handled_by" id="handled_by">
+                                    <option value="">--</option>
+                                    {% for hb in handled_by_writers %}
+                                    <option value="{{ hb.id }}">{{ hb.name }} - {{ hb.email }}</option>
+                                    {% endfor %}
+                                </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="email">Email:</label></td>
+                                <td><input type="text" name="email" id="email"
+                                           value="{{ grant.email if grant else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="phone">Phone:</label></td>
+                                <td><input type="text" name="phone" id="phone"
+                                           value="{{ grant.phone if grant else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="website">Website:</label></td>
+                                <td><input type="text" name="website" id="website"
+                                           value="{{ grant.website if grant else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="amount">Amount:</label></td>
+                                <td><input type="text" name="amount" id="amount"
+                                           value="{{ grant.amount if grant else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="application_due_date">Application Due Date:</label></td>
+                                <td><input type="text" name="application_due_date" id="application_due_date"
+                                           value="{{ grant.application_due_date if grant else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="approved_rejected_date">Approved / Rejected Date:</label></td>
+                                <td><input type="text" name="approved_rejected_date" id="approved_rejected_date"
+                                           value="{{ grant.approved_rejected_date if grant else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="report_due_date">Report Due Date:</label></td>
+                                <td><input type="text" name="report_due_date" id="report_due_date"
+                                           value="{{ grant.report_due_date if grant else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="completed">Completed:</label></td>
+                                <td><label><input type="radio" name="completed" id="completed_yes" value="Y"
+                                                  {% if grant and grant.completed == 'Y' %}checked{% endif %}/>&nbsp;Yes&nbsp;&nbsp;&nbsp;</label><label
+                                        for="completed_no"><input type="radio" name="completed" id="completed_no"
+                                                                  value="N"
+                                                                  {% if grant and grant.completed != 'Y' %}checked{% endif %}/>&nbsp;No</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="report_completed">Report Completed:</label></td>
+                                <td><label><input type="radio" name="report_completed" id="report_completed_yes" value="Y"
+                                                  {% if grant and grant.report_completed == 'Y' %}checked{% endif %}/>&nbsp;Yes&nbsp;&nbsp;&nbsp;</label><label
+                                        for="report_completed_no"><input type="radio" name="report_completed" id="report_completed_no"
+                                                                  value="N"
+                                                                  {% if grant and grant.report_completed != 'Y' %}checked{% endif %}/>&nbsp;No</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="active_pending_active">Status:</label></td>
+                                <td>
+                                    <label>
+                                        <input type="radio" name="active_pending" id="active_pending_active"{% if grant and grant.pending == 0 %}checked{% endif %} value="0"/>
+                                        &nbsp;Active&nbsp;&nbsp;&nbsp;
+                                    </label>
+                                    <label for="active_pending_pending">
+                                        <input type="radio" name="active_pending" id="active_pending_pending" {% if grant and grant.pending == 1 %}checked{% endif %} value="1"/>
+                                        &nbsp;Pending&nbsp;&nbsp;&nbsp;
+                                    </label>
+                                    <label for="active_pending_rejected">
+                                        <input type="radio" name="active_pending" id="active_pending_rejected" {% if grant and grant.pending == 2 %}checked{% endif %} value="2"/>
+                                        &nbsp;Rejected&nbsp;&nbsp;&nbsp;
+                                    </label>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="grant_action" id="grant_action" value="new"/>
+                        <input type="hidden" name="id" id="id" value=""/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-grant">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+          function deleteGrant(id, name) {
+              if (confirm("Are you sure to delete grant \"" + name + "\" with " + id + "?")) {
+                  $.ajax({
+                    url: "grants",
+                    type: "post",
+                    beforeSend: function (xhr, settings) {
+                        console.log("Going to delete " + id);
+                        $("#loadingImage").show();
+                    },
+                    data: {
+                        grant_action: 'delete',
+                        id: id
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        alert(response.message);
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                        $("#loadingImage").hide();
+                        window.location = window.location.href;
+                    }
+                  });
+              }
+          }
+        $(document).ready(function () {
+            $("#report_due_date").datepicker();
+            $("#approved_rejected_date").datepicker();
+            $("#application_due_date").datepicker();
+            let dt = $('#grants_table').DataTable(
+                {
+                    paging: false,
+                    responsive: true
+                });
+            $('#grants_table tbody').on('click', 'td', function (e) {
+                if (e.target.classList.contains('delete')) {
+                    deleteGrant(e.target.dataset.id, e.target.dataset.name);
+                    return false;
+                }
+                if (e.target.classList.contains('edit')) {
+                    window.eee = e;
+                    var data = dt.row(this).data();
+                    if (data === undefined) {
+                        // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+                        var hiddenNode = $(this.parentNode).prev()[0].children[0];
+                        data = dt.row(hiddenNode).data();
+                    }
+                    window.ddd = data;
+                    $("#name").val(data[1]);
+                    $("#contact_person").val(data[2]);
+                    $("#email").val(data[4]);
+                    $("#phone").val(data[5]);
+                    $("#website").val(e.target.dataset.website);
+                    $("#amount").val(data[7]);
+                    $("#handled_by").val(e.target.dataset.handled_by).change();
+                    $("#application_due_date").val(data[8]);
+                    $("#approved_rejected_date").val(data[9]);
+                    $("#report_due_date").val(data[10]);
+                    if (data[11] === 'Y') {
+                        $("#completed_yes").prop('checked', true);
+                    } else {
+                        $("#completed_no").prop('checked', true);
+                    }
+                    if (data[12] === 'Y') {
+                        $("#report_completed_yes").prop('checked', true);
+                    } else {
+                        $("#report_completed_no").prop('checked', true);
+                    }
+                    $("#active_pending_active").prop('checked', true);
+                    $("#grant_action").val("edit");
+                    $("#id").val(e.target.dataset.id);
+                    $("#tableModalLabel").html("Edit grant");
+                    $("#tableModalGrant").modal('show');
+                    return false;
+                }
+            });
+            let dt2 = $('#pending_grants_table').DataTable(
+                {
+                    paging: false,
+                    responsive: true
+                });
+            $('#pending_grants_table tbody').on('click', 'td', function (e) {
+                if (e.target.classList.contains('delete')) {
+                    deleteGrant(e.target.dataset.id, e.target.dataset.name);
+                    return false;
+                }
+                if (e.target.classList.contains('edit')) {
+                    window.eee = e;
+                    var data = dt2.row(this).data();
+                    if (data === undefined) {
+                        // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+                        var hiddenNode = $(this.parentNode).prev()[0].children[0];
+                        data = dt.row(hiddenNode).data();
+                    }
+                    window.ddd = data;
+                    $("#name").val(data[1]);
+                    $("#contact_person").val(data[2]);
+                    $("#email").val(data[4]);
+                    $("#phone").val(data[5]);
+                    $("#website").val(e.target.dataset.website);
+                    $("#amount").val(data[7]);
+                    $("#handled_by").val(e.target.dataset.handled_by).change();
+                    $("#application_due_date").val(data[8]);
+                    $("#approved_rejected_date").val(data[9]);
+                    $("#report_due_date").val(data[10]);
+                    if (data[11] === 'Y') {
+                        $("#completed_yes").prop('checked', true);
+                    } else {
+                        $("#completed_no").prop('checked', true);
+                    }
+                    if (data[12] === 'Y') {
+                        $("#report_completed_yes").prop('checked', true);
+                    } else {
+                        $("#report_completed_no").prop('checked', true);
+                    }
+                    $("#active_pending_pending").prop('checked', true);
+                    $("#grant_action").val("edit");
+                    $("#id").val(e.target.dataset.id);
+                    $("#tableModalLabel").html("Edit grant");
+                    $("#tableModalGrant").modal('show');
+                    return false;
+                }
+            });
+            let dt3 = $('#rejected_grants_table').DataTable(
+                {
+                    paging: false,
+                    responsive: true
+                });
+            $('#rejected_grants_table tbody').on('click', 'td', function (e) {
+                if (e.target.classList.contains('delete')) {
+                    deleteGrant(e.target.dataset.id, e.target.dataset.name);
+                    return false;
+                }
+                if (e.target.classList.contains('edit')) {
+                    window.eee = e;
+                    var data = dt3.row(this).data();
+                    if (data === undefined) {
+                        // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+                        var hiddenNode = $(this.parentNode).prev()[0].children[0];
+                        data = dt.row(hiddenNode).data();
+                    }
+                    window.ddd = data;
+                    $("#name").val(data[1]);
+                    $("#contact_person").val(data[2]);
+                    $("#email").val(data[4]);
+                    $("#phone").val(data[5]);
+                    $("#website").val(e.target.dataset.website);
+                    $("#amount").val(data[7]);
+                    $("#handled_by").val(e.target.dataset.handled_by).change();
+                    $("#application_due_date").val(data[8]);
+                    $("#approved_rejected_date").val(data[9]);
+                    $("#report_due_date").val(data[10]);
+                    if (data[11] === 'Y') {
+                        $("#completed_yes").prop('checked', true);
+                    } else {
+                        $("#completed_no").prop('checked', true);
+                    }
+                    if (data[12] === 'Y') {
+                        $("#report_completed_yes").prop('checked', true);
+                    } else {
+                        $("#report_completed_no").prop('checked', true);
+                    }
+                    $("#active_pending_rejected").prop('checked', true);
+                    $("#grant_action").val("edit");
+                    $("#id").val(e.target.dataset.id);
+                    $("#tableModalLabel").html("Edit grant");
+                    $("#tableModalGrant").modal('show');
+                    return false;
+                }
+            });
+            function addGrant() {
+                $("#name").val('');
+                $("#contact_person").val('');
+                $("#email").val('');
+                $("#phone").val('');
+                $("#website").val('');
+                $("#amount").val('');
+                $("#approved_rejected_date").val('');
+                $("#application_due_date").val('');
+                $("#report_due_date").val('');
+                $("#completed_yes").prop('checked', false);
+                $("#completed_no").prop('checked', false);
+                $("#report_completed_yes").prop('checked', false);
+                $("#report_completed_no").prop('checked', false);
+                $("#active_pending_active").prop('checked', false);
+                $("#active_pending_pending").prop('checked', false);
+                $("#active_pending_rejected").prop('checked', false);
+                $("#id").val('');
+                $("#grant_action").val("new");
+                $("#tableModalLabel").html("Add a new grant");
+                $("#tableModalGrant").modal('show');
+            }
+
+            $(document).on('click', "#btn-add-grant", addGrant);
+        });
+    </script>
+{% endblock %}

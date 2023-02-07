@@ -1,0 +1,13 @@
+{% if message %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div class="col-lg-12 mb-6">
+            <div class="card bg-{{ message.type }} text-white shadow">
+                <div class="card-body">
+                    {{ message.body }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

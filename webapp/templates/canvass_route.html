@@ -1,0 +1,183 @@
+<!-- templates/outreach_contacts.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-success">
+        {{ messages[0] }}
+    </div>
+{% endif %}
+{% endwith %}
+<div class="">
+    <!-- Project Card -->
+    <div class="card shadow mb-8">
+        <div class="card-header py-6">
+            <h6 class="m-0 font-weight-bold text-primary">Outreach Canvass Router Contacts</h6>
+        </div>
+        <div class="card-body">
+            <a class="btn mb-3 btn-dark {%  if 'show=all' in request.url %}active{% endif %}" href="/presentations/canvass_route_contacts?show=all">Show All</a>
+            <a class="btn mb-3 mr-2 btn-dark {%  if 'show=archived' in request.url %}active{% endif %}" href="/presentations/canvass_route_contacts?show=archived">Show archived</a>
+            <button type="button" class="btn btn-success mb-3 float-right" id="btn_add_canvass_route">Add Canvass Route Contact</button>
+            <table class="table table-responsive table-bordered" id="canvass_route_table" style="width: 100%;">
+                <thead>
+                    <tr class="white_header_class">
+                        <th>Id</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Neighborhood</th>
+                        <th scope="col">Area/Streets covered</th>
+                        <th scope="col">Numbers </th>
+                        <th scope="col">Summary </th>
+                        <th scope="col">For Next Time </th>
+                        <th scope="col">Actions </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for canvass_route in canvass_routes %}
+                        <tr>
+                            <td>{{ canvass_route.canvass_route_id }}</td>
+                            <td>{{ canvass_route.contact_date }}</td>
+                            <td>{{ canvass_route.neighborhood }}</td>
+                            <td>{{ canvass_route.area_street }}</td>
+                            <td>{{ canvass_route.bnumbers }}</td>
+                            <td>{{ canvass_route.summary }}</td>
+                            <td>{{ canvass_route.for_next_time }}</td>
+                            <td>
+                                <a class="edit" href="#" data-id="{{ canvass_route.canvass_route_id }}" data-handled_by="{{ canvass_route.canvass_route_id }}" >✎ </a>&nbsp;
+                                {% if canvass_route.archived != 1 %}<a href="/presentations/canvass_route_contacts?edit=canvass_route&id={{ canvass_route.canvass_route_id }}&archive=true" onclick="return confirm('Are you sure to archive canvas route {{ canvass_route.canvass_route_id }}?')">📁</a>&nbsp;{% endif %}
+                                <a class="delete" href="#" data-id="{{ canvass_route.canvass_route_id }}" data-handled_by="{{ canvass_route.canvass_route_id }}">x</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="canvassRouteModal" tabindex="-1" role="dialog" aria-labelledby="tableModalCanvassRoute"
+         aria-hidden="true">
+    <div class="modal-dialog pc-maxwidth-600" role="document">
+        <div class="modal-content">
+            <form action="/presentations/canvass_route_contacts" method="post" id="frm_canvass_route">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tableModalLabelCanvassRoute">Canvass Routes Contact</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <label for="contact_date" class="col-4">Date</label>
+                        <input type="text" name="contact_date" id="contact_date" value="" required class="form-control col-7"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="neighborhood" class="col-4">Neighborhood:</label>
+                        <input type="text" name="neighborhood" id="neighborhood" value="" class="form-control col-7"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="area_street" class="col-4">Area/Streets covered:</label>
+                        <input type="text" name="area_street" id="area_street" value="" class="form-control col-7"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="bnumbers" class="col-4">Numbers:</label>
+                        <input type="text" name="bnumbers" id="bnumbers" value="" class="form-control col-7"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="summary" class="col-4">Summary::</label>
+                        <input type="text" name="summary" id="summary" value="" class="form-control col-7"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="for_next_time" class="col-4">For Next Time:</label>
+                        <input type="text" name="for_next_time" id="for_next_time" required class="form-control col-7"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="id" id="id"/>
+                    <input type="hidden" name="action" id="action" value="new"/>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btn-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $("#btn_add_canvass_route").on('click', function(){
+            $("#canvassRouteModal").modal('show');
+        });
+        $('#canvassRouteModal').on('hidden.bs.modal', function (e) {
+            $("#frm_canvass_route").trigger('reset');
+        });
+        let crt_table = $('#canvass_route_table').DataTable(
+            {
+                paging: false,
+                columnDefs: [
+                    {
+                        targets: [0],
+                        visible: false,
+                        searchable: false
+                    }
+                ],
+                order:[[1,'asc']]
+            });
+        $('#canvass_route_table tbody').on('click', 'td', function (e) {
+            row = crt_table.row(this)
+            var data = row.data();
+            if (data === undefined) {
+                // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+                var hiddenNode = $(this.parentNode).prev()[0].children[0];
+                data = yp_table.row(hiddenNode).data();
+            }
+            if (e.target.classList.contains('delete')) {
+                id = e.target.dataset.id
+                if(confirm("Are you sure to delete " + data[1] + "?")) {
+                    $.ajax({
+                        url: "/presentations/canvass_route_contacts",
+                        type: "post",
+                        data: {
+                            action: "delete",
+                            id: id
+                        },
+                        success: function (response) {
+                            console.log(response);
+                            row.remove().draw()
+                            alert("Canvass Route Contact "+ data[1] +" deleted successfully.");
+                        },
+                        error: function (xhr) {
+                            console.log('there was an error')
+                            console.log(xhr);
+                        },
+                        complete: function (xhr, textStatus) {
+                            console.log(textStatus);
+                        }
+                    });
+                }
+                return true
+            }
+            if (e.target.classList.contains('edit')) {
+                $("#id").val(data[0])
+                $("#contact_date").val(data[1])
+                $("#neighborhood").val(data[2])
+                $("#area_street").val(data[3])
+                $("#bnumbers").val(data[4])
+                $("#summary").val(data[5])
+                $("#for_next_time").val(data[6])
+                $("#tableModalLabelCanvassRoute").html("Edit canvass route contact");
+                $("#canvassRouteModal").modal('show');
+                return false;
+            }
+        });
+
+        $("#contact_date").datetimepicker({
+            defaultDate: new Date(),
+            formatDate: 'd-m-Y',
+            format:'d-m-Y',
+            timepicker: false
+        });
+    });
+    
+</script>
+{% endblock %}

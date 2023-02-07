@@ -1,0 +1,67 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    {% if survey_settings %}
+        <div class="column is-8 is-offset-2">
+            <h3 class="title">Settings</h3>
+            <div class="box">
+                <form method="POST" action="/products-google-forms">
+                    <div class="form-inline">
+                        <div class="form-inline custom-control-inline">
+                            <label for="days_before_customer_satisfaction_email">Number of days before customer satisfaction survey email is sent:</label>
+                            <input type="hidden" name="type" value="settings" />
+                            <input name="days_before_customer_satisfaction_email" id="days_before_customer_satisfaction_email" value="{{ survey_settings.days_before_customer_satisfaction_email }}" class="form-control col-sm-2 text-center ml-2"/>
+                            <label for="days_before_bom_subscription_survey_email_resend">Number of days before BOM satisfaction survey email is resent:</label>
+                            <input name="days_before_bom_subscription_survey_email_resend" id="days_before_bom_subscription_survey_email_resend" value="{{ survey_settings.days_before_bom_subscription_survey_email_resend }}" class="form-control col-sm-2 text-center ml-2"/>
+                            <input type="submit" value="Save" class="btn btn-outline-dark ml-2"/>
+                        </div>
+                    </div>
+                    <div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <br/>
+        <br/>
+    {% endif %}
+    {% if products %}
+        <div class="">
+            <h3 class="title">Products and Satisfaction Form Urls</h3>
+            <div class="box">
+            <form method="POST" action="/products-google-forms">
+                    <table class="table-responsive">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col" class="col-sm-5">Product</th>
+                          <th scope="col" class="col-sm-3">Product Short Name</th>
+                          <th scope="col">Satisfaction Form URL</th>
+                        </tr>
+                      </thead>
+                      {% for p in products %}
+                          <tbody>
+                            <tr>
+                              <th scope="row">{{ loop.index }}</th>
+                              <td>{{ p.product_name }}</td>
+                              <td><input class="form-control input-lg"  name="{{ p.product_id }}_short_name" value="{% if p.product_short_name %}{{ p.product_short_name }}{% endif %}" /></td>
+                              <td><input class="form-control input-lg"  name="{{ p.product_id }}_url" value="{{ products_google_forms[p.product_id].url if p.product_id in products_google_forms else ''}}" /></td>
+                            </tr>
+                          </tbody>
+                      {% endfor %}
+                    </table>
+            <input type="submit" value="Save" class="btn btn-outline-dark ml-2" />
+            </form>
+            </div>
+        </div>
+    {% else %}
+        <h3>No products found</h3>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Get a production sheet for a route</h1>
+    </div>
+
+    <button class="btn-outline-primary rounded" style="margin-bottom: 30px;"
+            id="refresh-routific-projects-list">Reload routific projects list
+    </button>
+
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-12 mb-8">
+
+            <!-- Project Card -->
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Select a
+                        routific project</h6>
+                </div>
+                <div class="card-body">
+                    <select name="routific-project-id"
+                            id="routific-project-id" class="form-control">
+                        {% for p in data.projects %}
+                            {% if p.routific_project_id == '5f5eeefcac034800172121f8' %}
+                                <option value="{{ p.routific_project_id }}">
+                                    DELIVER LATER
+                                </option>
+                            {% else %}
+                                <option value="{{ p.routific_project_id }}">{{ p.routific_project_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button id="btn-get-production-sheet"  class="btn btn-outline-dark mt-2">Get production sheet</button>
+                    <div id="target_table">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+   window.product_data = '{{ data.data|tojson|safe }}';
+   const params = new URLSearchParams(location.search);
+   if(params.get('err') === '1') {
+       alert('Solution was not found; Please optimize the corresponding route in routific and rerun the tool.')
+   }
+</script>
+{% endblock %}

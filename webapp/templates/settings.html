@@ -1,0 +1,164 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    {% if survey_settings %}
+        <div class="column is-8 is-offset-2">
+            <h3 class="title">Settings</h3>
+            <div class="box">
+                <form method="POST" action="/settings">
+                    <input type="hidden" name="type" value="custom_settings" />
+                    <div class="">
+                        <br/>
+                        <div>
+                            <h5 class="title"><u>Customer Satisfaction Email settings</u></h5>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="days_before_customer_satisfaction_email">Number of days before customer satisfaction survey email is sent:</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input name="days_before_customer_satisfaction_email" id="days_before_customer_satisfaction_email" value="{{ survey_settings.days_before_customer_satisfaction_email }}" class="form-control col-sm-2 text-center ml-2"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="days_before_bom_subscription_survey_email_resend">Number of days before BOM satisfaction survey email is resent:</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input name="days_before_bom_subscription_survey_email_resend" id="days_before_bom_subscription_survey_email_resend" value="{{ survey_settings.days_before_bom_subscription_survey_email_resend }}" class="form-control col-sm-2 text-center ml-2"/>
+                                </div>
+                            </div>
+                        </div>
+                        <br/>
+                        <div>
+                            <h5 class="title"><u>Florist Email settings</u></h5>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="florist_email">Florist Email:</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input name="florist_email" id="florist_email" value="{{ survey_settings.florist_email }}" class="form-control col-sm-6 text-center ml-2"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="events_first_email_days_before">Number of days before which the first email notification of the event should be sent:</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input name="events_first_email_days_before" id="events_first_email_days_before" value="{{ survey_settings.events_first_email_days_before }}" class="form-control col-sm-2 text-center ml-2"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="events_second_email_days_before">Number of days before which the second email notification of the event should be sent:</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input name="events_second_email_days_before" id="events_second_email_days_before" value="{{ survey_settings.events_second_email_days_before }}" class="form-control col-sm-2 text-center ml-2"/>
+                                </div>
+                            </div>
+                        </div>
+                        <br/>
+                        <div>
+                            <h5 class="title"><u>Google Review Request Mail Setting</u></h5>
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="google_reviews_rem_days_after">Number of days after send google review request mail:</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input name="google_reviews_rem_days_after" id="google_reviews_rem_days_after" value="{{ survey_settings.google_reviews_rem_days_after }}" class="form-control col-sm-6 text-center ml-2"/>
+                                </div>
+                            </div>
+                        </div>
+                        <br/>
+                        <input type="submit" value="Save" class="btn btn-outline-dark ml-2"/>
+                    </div>
+                    <div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <br/>
+        <br/>
+    {% endif %}
+    {% if products %}
+        <div class="">
+            <h3 class="title">Products and Satisfaction Form Urls</h3>
+            <div class="box">
+            <form method="POST" action="/settings">
+                    <table class="table-responsive">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col" class="col-sm-5">Product</th>
+                          <th scope="col" class="col-sm-2">Product Short Name</th>
+                          <th scope="col">Satisfaction Form URL</th>
+                          <th scope="col">Satisfaction Spreadsheet ID 
+                            <i class="fa fa-question-circle" title="Know how to setup" type="button" data-toggle="modal" data-target="#sprdsht-setup-guide"></i>
+                          </th>
+                        </tr>
+                      </thead>
+                      {% for p in products %}
+                          <tbody>
+                            <tr>
+                              <th scope="row">{{ loop.index }}</th>
+                              <td>{{ p.product_name }}</td>
+                              <td><input class="form-control input-lg"  name="{{ p.product_id }}_short_name" value="{% if p.product_short_name %}{{ p.product_short_name }}{% endif %}" /></td>
+                              <td><input class="form-control input-lg"  name="{{ p.product_id }}_url" value="{{ products_google_forms[p.product_id].url if p.product_id in products_google_forms else ''}}" /></td>
+                              <td><input class="form-control input-lg"  name="{{ p.product_id }}_sprdst_id" value="{{ products_google_forms[p.product_id].google_spreadsheet_id if p.product_id in products_google_forms and products_google_forms[p.product_id].google_spreadsheet_id else ''}}" /></td>
+                            </tr>
+                          </tbody>
+                      {% endfor %}
+                    </table>
+            <input type="submit" value="Save" class="btn btn-outline-dark ml-2" />
+            </form>
+            </div>
+        </div>
+
+        <div class="modal fade" id="sprdsht-setup-guide" tabindex="-1" role="dialog" aria-labelledby="tableModalLabel"
+         aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content" >
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tableModalLabel">Spreadsheet Setup Guide</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <ol>
+                            <li>
+                                Open the spreadsheet associated with the google form.
+                            </li>
+                            <li>
+                                Click on share button on the top-right side. (A <b>Share with people and groups</b> modal will pop-up).
+                            </li>
+                            <li>
+                                In the <b>Get link</b> Section, Click on <b>Change to anyone with the link</b>.
+                            </li>
+                            <li>
+                                Copy the link by clicking on <b>Copy link</b> button.
+                            </li>
+                            <li>
+                                Get the sheet-id from the url and copy it:
+                                <br>
+                                <kbd>https://docs.google.com/spreadsheets/d/<code><u>XXXXXXXXXXXXXXXXXX</u></code>/edit#gid=0</kbd>
+                            </li>
+                            <li>
+                                Paste the ID in <b>Satisfaction Spreadsheet ID</b> column.
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <h3>No products found</h3>
+    {% endif %}
+{% endblock %}

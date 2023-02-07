@@ -1,0 +1,82 @@
+<!-- templates/wp_subscription.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">Subscription list</h3>
+        <div class="box">
+            <table class="table table-borderless" id="tbl-subs-lst">
+                <thead class="thead-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Product Name</th>
+                        <th>Frequency</th>
+                        <th>Related Orders</th>
+                        <th>Next Order Date</th>
+                        <!-- <th>Status</th> -->
+                        <th>Cancel / Cancelled date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subs in subs_list %}
+                    <tr>
+                        <td>
+                            {{ subs.subscription_id }}
+                        </td>
+                        <td>
+                            <a href="{{WP_BASE_URL}}wp-admin/user-edit.php?user_id={{subs.user_id}}" target="_blank"> {{ subs.customer_name or subs.user_id }} </a>
+                        </td>
+                        <td>
+                            {{ subs.product.product_name }}
+                        </td>
+                        <td>
+
+                            Every {{ subs.subs_period_interval if subs.subs_period_interval > 1 else '' }} {{ subs.subs_period }}
+                        </td>
+                        <td>
+                            <a href="{{WP_BASE_URL}}wp-admin/post.php?post={{subs.parent_order_id}}&action=edit" target="_blank">{{ wc_to_order_number(subs.parent_order_id) }}</a>&sbquo;
+                            {% if subs.related_orders %}
+                            {% set rel_ordrs = subs.related_orders.split(',') %}
+                            {% set mapping =  wc_to_order_number(rel_ordrs, True)%}
+                                {% for ord in rel_ordrs %}
+                                    <a href="{{WP_BASE_URL}}wp-admin/post.php?post={{ord}}&action=edit" target="_blank">{{ mapping[ord] }}</a>&sbquo;
+                                {% endfor %}
+                            {% endif %}
+                        </td>
+                        <td data-sort="{{ subs.next_order_date.strftime('%Y%m%d') }}">
+                            {{ subs.next_order_date.strftime('%d %b, %Y') if subs.next_order_date else '' }}
+                        </td>
+                        <td>
+                            {% if subs.is_active %}
+                            <a href="wc/cancel-subscription?subs_id={{subs.subscription_id}}&is_admin_request=1" class="btn btn-sm btn-outline-danger">Cancel now!</a>
+                            {% else %}
+                            {{ subs.cancelled_date.strftime('%d %b, %Y') if subs.cancelled_date else '' }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#tbl-subs-lst').DataTable({
+                paging: true,
+                // responsive: true,
+                // columnDefs: [
+                //     { responsivePriority: 10001, targets: 1 },
+                // ]
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,1065 @@
+{%  if base=="old" %}
+{% extends "base.html" %}
+    {% else %}
+{% extends "new_base.html" %}
+{% endif %}
+
+{% block content %}
+    {%  if base=="old" %}
+<h1 class="title">
+  Routing Webapp
+</h1>
+<img id="loadingImage" src="loading.gif" alt="loading" style="display: none; height: 35px; width: 35px;"/>
+<h2 class="subtitle">
+  Integrates squarespace and routific and provides access to tools
+</h2>
+{% if current_user.is_authenticated %}
+<form>
+  <select name="productId" id="productId">
+    {% for product in data.data %}
+      <option value="{{product.productId}}">{{product.product_name}}</option>
+    {% endfor %}
+  </select>
+</form>
+    <button id="btnPlanProject">Plan</button>
+<div>
+    <img id="refresh-product-list" src="refresh.svg">
+</div>
+<div style="margin: 30px;">
+  <button id="btn-labels">Get Labels / Tags</button>
+  <button id="btn-squarespace">Get SquareSpace CSV</button>
+  <button id="btn-routific">Get Routific CSV</button><br/>
+  <button id="btn-create-routific-project">Create Routific Project</button>
+  <button id="btn-update-routific-project">Update Routific Project</button>
+  <button id="btn-csa">CSA</button>
+</div>
+<div id="div-csa" style="display:none;">
+  <button id="btn-csa-load-data">Load data</button>
+</div>
+
+<div id="routific-create-project-details" style="display:none;">
+  <label for="project_name">Project Name</label>
+<input id="project_name" placeholder="The name of the project" width=200></input>
+<label for="project_date">Project Date</label>
+<input id="project_date" placeholder="The project date"></input>
+<button id="btn-create-routific-project-now" placeholder="The project date" >Create now!</button>
+<button id="btn-create-empty-routific-project-now"  >Create EMPTY project!</button>
+</div>
+<div id="routific-update-project-details" style="display:none;">
+  <label for="routific-project-id">Load data from project</label>
+    <select name="routific-project-id" id="routific-project-id">
+    {% for p in data.projects %}
+      {% if p.routific_project_id == '5f5eeefcac034800172121f8' %}
+      <option value="{{p.routific_project_id}}">DELIVER LATER</option>
+      {% else %}
+      <option value="{{p.routific_project_id}}">{{p.routific_project_name}}</option>
+      {% endif %}
+    {% endfor %}
+  </select>
+<img id="refresh-routific-projects-list" src="refresh.svg" />
+<button id="btn-load-routific-project-data" placeholder="The project" >Load data</button>
+<button id="btn-move-to-another-project" >Move</button>
+<button id="btn-deliver-later" >Deliver later</button>
+<button id="btn-delivery-schedule" >Send Delivery Schedule Email</button>
+<div id="div-move-to-another-project" style="display:none;">
+    <select name="move-to-routific-project-id" id="move-to-routific-project-id">
+    {% for p in data.projects %}
+      {% if p.routific_project_id == '5f5eeefcac034800172121f8' %}
+      <option value="{{p.routific_project_id}}">DELIVER LATER</option>
+      {% else %}
+      <option value="{{p.routific_project_id}}">{{p.routific_project_name}}</option>
+      {% endif %}
+    {% endfor %}
+  </select>
+  <button id="btn-move-to-another-project-now" >Move now</button>
+</div>
+</div>
+  {% if data.message %}
+    <div id="message-div" style="border: 1px solid #ff7788;">
+    {{data.message}}&nbsp;&nbsp;&nbsp;<span id="hide-message" style="float: right; font-weight: bold; padding-right: 12px; cursor: pointer;">x</span>
+    </div>
+  {% endif %}
+{% endif %}
+<div id="target_table"></div>
+
+  <script>
+function randomName(len) {
+   var result           = '';
+   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < len; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
+
+function confirmPendingOrdersOnly() {
+        if (confirm('Do you want to use pending orders of the selected product only ?')) {
+          console.log('Yes, pending orders ONLY');
+          return true;
+        } else {
+          console.log('NO, use ALL orders');
+          return false;
+        }
+}
+
+  $(document).ready(function(){
+
+      function getSquareSpaceCSV() {
+        var productId = $("#productId").val();
+        var pendingOrdersOnly = confirmPendingOrdersOnly();
+        var allOrders = !pendingOrdersOnly;
+        var new_href = "/csv?productId=" + productId + "&format=squarespace&allOrders=" + allOrders.toString();
+        console.log("Taking user to " + new_href);
+        window.location.href = window.location.origin + new_href;
+      }
+
+      function getRoutificCSV() {
+        var productId = $("#productId").val();
+        var new_href = "/csv?productId=" + productId + "&format=routific";
+        console.log("Taking user to " + new_href);
+        window.location.href = window.location.origin + new_href;
+      }
+
+      function getLabelsDocx() {
+        var productId = $("#productId").val();
+        var new_href = "/labels?productId=" + productId;
+        console.log("Taking user to " + new_href);
+        window.location.href = window.location.origin + new_href;
+      }
+
+      function showHideCreateRoutificProjectDiv() {
+        if($("#routific-create-project-details").is(':visible')) {
+          $("#routific-create-project-details").hide();
+        } else {
+          $("#routific-create-project-details").show();
+        }
+      }
+
+      function showHideUpdateRoutificProjectDiv() {
+        if($("#routific-update-project-details").is(':visible')) {
+          $("#routific-update-project-details").hide();
+          $("#target_table").hide();
+        } else {
+          $("#routific-update-project-details").show();
+          $("#target_table").show();
+        }
+      }
+
+      function createRoutificProject() {
+        hideMessageDiv();
+        var productId = $("#productId").val();
+        var projectName = $("#project_name").val();
+        var projectDate = $("#project_date").val();
+        if (projectName.trim() == "") {
+          var r = confirm("Project name is not supplied. Use a random name ?");
+          if (r == true) {
+            projectName = randomName(12);
+            alert("Using project name = " + projectName);
+          } else {
+            return;
+          }
+        }
+        if (projectDate.trim() == "") {
+          var r = confirm("Project date is not supplied. Use a random date ?");
+          if (r == true) {
+            var today = new Date();
+            projectDate = today.toLocaleDateString("en-US");
+            alert("Using project date = " + projectDate);
+          } else {
+            return;
+          }
+        }
+        var new_href = "/createProject?productId=" + productId + "&projectName=" + projectName + "&projectDate=" + projectDate;
+        console.log("Taking user to " + new_href);
+        window.location.href = window.location.origin + new_href;
+      }
+
+      function createEmptyRoutificProject() {
+        hideMessageDiv();
+        var productId = "";
+        var projectName = $("#project_name").val();
+        var projectDate = $("#project_date").val();
+        if (projectName.trim() == "") {
+          var r = confirm("Project name is not supplied. Use a random name ?");
+          if (r == true) {
+            projectName = randomName(12);
+            alert("Using project name = " + projectName);
+          } else {
+            return;
+          }
+        }
+        if (projectDate.trim() == "") {
+          var r = confirm("Project date is not supplied. Use a random date ?");
+          if (r == true) {
+            var today = new Date();
+            projectDate = today.toLocaleDateString("en-US");
+            alert("Using project date = " + projectDate);
+          } else {
+            return;
+          }
+        }
+        var new_href = "/createProject?productId=" + productId + "&projectName=" + projectName + "&projectDate=" + projectDate;
+        console.log("Taking user to " + new_href);
+        window.location.href = window.location.origin + new_href;
+      }
+
+      function loadRoutificProjectData() {
+        $.ajax({
+          url: "getRoutificProjectData",
+          type: "get",
+          beforeSend: function(xhr, settings) {
+            $("#loadingImage").show();
+          },
+          data: { 
+            projectId: $('#routific-project-id').val()
+          },
+          success: function(response) {
+            console.log(response);
+            window.response = response;
+            var tbl_body = "<tr><th>S.No.</th><th>Select</th><th>Order ID</th><th>name</th><th>email</th><th>address</th><th>phone</th></tr>";
+            var odd_even = false;
+            var count = 0;
+            $.each(response.visits, function() {
+                count++;
+                var tbl_row = "<td>" + count + ".</td>";
+                tbl_row += "<td><input type='checkbox' class='pc-checkbox' name='" + this.id + "' id='chk_" + this.id + "' value='" +this.id+ "' /></td>"
+                var orderId = '--';
+                if(this.customNotes['Order ID']) {
+                  orderId = this.customNotes['Order ID'];
+                }
+                if (orderId === "--") {
+                    if(this.customNotes['order_id']) {
+                        orderId = this.customNotes['order_id'];
+                    }
+                }
+                tbl_row += "<td>" + orderId + "</td>"
+                tbl_row += "<td>" + this.name + "</td>"
+                tbl_row += "<td>" + this.email + "</td>"
+                tbl_row += "<td>" + this.location.address + "</td>"
+                tbl_row += "<td>" + this.phone + "</td>"
+                tbl_body += "<tr class=\""+( odd_even ? "odd" : "even")+"\">"+tbl_row+"</tr>";
+                odd_even = !odd_even;               
+            });
+            $("#target_table").html("<table>" + tbl_body + "</table>");
+          },
+          error: function(xhr) {
+            console.log('there was an error')
+            console.log(xhr);
+          },
+          complete: function(xhr, textStatus) {
+            console.log(textStatus);
+            $("#loadingImage").hide();
+          }
+        });
+      }
+
+      function hideMessageDiv() {
+        $('#message-div').html("");
+        $('#message-div').css("border", "none");
+      }
+
+      function showMessage(msg) {
+        alert(msg);
+      }
+
+      function reloadRoutificProjects() {
+        $.ajax({
+          url: "reloadRoutificProjects",
+          type: "get",
+          beforeSend: function(xhr, settings) {
+            $("#loadingImage").show();
+          },
+          data: {},
+          success: function(response) {
+            console.log(response);
+            var outputHtml = '';
+            var newOptions = {};
+            $.each(response, function() {
+              newOptions[this.routific_project_id] = this.routific_project_name;
+            });
+            var $el = $("#routific-project-id");
+            var $elMoveTo = $("#move-to-routific-project-id");
+            console.log("Emptying previous items");
+            $el.empty(); // remove old options
+            $elMoveTo.empty(); // remove old options
+            console.log("Adding new items");
+            $.each(newOptions, function(key,value) {
+              
+              if(key == '5f5eeefcac034800172121f8') {
+                $el.append($("<option></option>")
+                  .attr("value", key).text("DELIVER LATER"));
+                $elMoveTo.append($("<option></option>")
+                  .attr("value", key).text("DELIVER LATER"));
+              } else {
+                console.log("Value is " + value);
+                $el.append($("<option></option>")
+                  .attr("value", key).text(value));
+                $elMoveTo.append($("<option></option>")
+                  .attr("value", key).text(value));
+              }
+            });
+            console.log("done");
+          },
+          error: function(xhr) {
+            console.log('there was an error')
+            console.log(xhr);
+          },
+          complete: function(xhr, textStatus) {
+            console.log(textStatus);
+            $("#loadingImage").hide();
+          }
+        });
+      }
+
+      function showHideMoveToAnotherProjectDiv() {
+        if($("#div-move-to-another-project").is(':visible')) {
+          $("#div-move-to-another-project").hide();
+        } else {
+          $("#div-move-to-another-project").show();
+        }
+      }
+
+      function moveToAnotherProject() {
+        // Show modal to select the project to which
+          // itemsToMove is an array of stop_ids that need to be moved
+        console.log("Check all the checked items");
+        var itemsToMove = [];
+
+        $.each($("input[type=checkbox]:checked"), function(){
+            itemsToMove.push($(this).val());
+        });
+        console.log("My checked items are: " + itemsToMove.join(","));
+
+        $.ajax({
+          url: "moveItemsFromRoutificProject",
+          type: "get",
+          beforeSend: function(xhr, settings) {
+            $("#loadingImage").show();
+          },
+          data: {
+            itemsToMove: itemsToMove.join(","),
+            fromProject: $('#routific-project-id').val(),
+            toProject: $('#move-to-routific-project-id').val(),
+          },
+          success: function(response) {
+            console.log(response);
+            var tbl_body = "<tr><th>Select</th><th>Order ID</th><th>name</th><th>email</th><th>address</th><th>phone</th></tr>";
+            var odd_even = false;
+            $.each(response.visits, function() {
+                var tbl_row = "";
+                tbl_row += "<td><input type='checkbox' class='pc-checkbox' name='" + this.id + "' id='chk_" + this.id + "' value='" +this.id+ "' /></td>"
+                var orderId = '--';
+                if(this.customNotes['Order ID']) {
+                  orderId = this.customNotes['Order ID'];
+                }
+                tbl_row += "<td>" + orderId + "</td>"
+                tbl_row += "<td>" + this.name + "</td>"
+                tbl_row += "<td>" + this.email + "</td>"
+                tbl_row += "<td>" + this.location.address + "</td>"
+                tbl_row += "<td>" + this.phone + "</td>"
+                tbl_body += "<tr class=\""+( odd_even ? "odd" : "even")+"\">"+tbl_row+"</tr>";
+                odd_even = !odd_even;
+            });
+            $("#target_table").html("<table>" + tbl_body + "</table>");
+          },
+          error: function(xhr) {
+            showMessage(($.parseJSON(xhr.responseText)).message);
+            console.log('there was an error')
+            console.log(xhr);
+          },
+          complete: function(xhr, textStatus) {
+            console.log(textStatus);
+            $("#loadingImage").hide();
+          }
+        });
+      }
+
+      function deliverLater() {
+        // Show modal to select the project to which
+        console.log("Deliver later");
+        var itemsToMove = [];
+
+        $.each($("input[type=checkbox]:checked"), function(){
+            itemsToMove.push($(this).val());
+        });
+        console.log("My checked items are: " + itemsToMove.join(","));
+
+        $.ajax({
+          url: "moveItemsFromRoutificProject",
+          type: "get",
+          beforeSend: function(xhr, settings) {
+            $("#loadingImage").show();
+          },
+          data: {
+            itemsToMove: itemsToMove.join(","),
+            fromProject: $('#routific-project-id').val(),
+            toProject: '5f5eeefcac034800172121f8',
+            deliverLater: 'true'
+          },
+          success: function(response) {
+            console.log(response);
+            var tbl_body = "<tr><th>Select</th><th>Order ID</th><th>name</th><th>email</th><th>address</th><th>phone</th></tr>";
+            var odd_even = false;
+            $.each(response.visits, function() {
+                var tbl_row = "";
+                tbl_row += "<td><input type='checkbox' class='pc-checkbox' name='" + this.id + "' id='chk_" + this.id + "' value='" +this.id+ "' /></td>"
+                var orderId = '--';
+                if(this.customNotes['Order ID']) {
+                  orderId = this.customNotes['Order ID'];
+                }
+                tbl_row += "<td>" + orderId + "</td>"
+                tbl_row += "<td>" + this.name + "</td>"
+                tbl_row += "<td>" + this.email + "</td>"
+                tbl_row += "<td>" + this.location.address + "</td>"
+                tbl_row += "<td>" + this.phone + "</td>"
+                tbl_body += "<tr class=\""+( odd_even ? "odd" : "even")+"\">"+tbl_row+"</tr>";
+                odd_even = !odd_even;
+            });
+            $("#target_table").html("<table>" + tbl_body + "</table>");
+          },
+          error: function(xhr) {
+            showMessage(($.parseJSON(xhr.responseText)).message);
+            console.log('there was an error')
+            console.log(xhr);
+          },
+          complete: function(xhr, textStatus) {
+            console.log(textStatus);
+            $("#loadingImage").hide();
+          }
+        });
+      }
+
+      function showHideCSA() {
+        if($("#div-csa").is(':visible')) {
+          $("#div-csa").hide();
+        } else {
+          $("#div-csa").show();
+        }
+      }
+
+      function loadDataCSA() {
+        $.ajax({
+          url: "loadDataCSA",
+          type: "get",
+          beforeSend: function(xhr, settings) {
+            $("#loadingImage").show();
+            $("#target_table").text("");
+          },
+          data: { 
+            productId: $('#productId').val(),
+            productName: $( "#productId option:selected" ).text(),
+            year: 2020
+          },
+          success: function(response) {
+            console.log(response);
+            $("#target_table").html(response);
+          },
+          error: function(xhr) {
+            showMessage(($.parseJSON(xhr.responseText)).message);
+            console.log('there was an error')
+            console.log(xhr);
+          },
+          complete: function(xhr, textStatus) {
+            console.log(textStatus);
+            $("#loadingImage").hide();
+          }
+        });
+      }
+
+      function refreshProductList() {
+        $.ajax({
+          url: "refreshProductList",
+          type: "get",
+          beforeSend: function(xhr, settings) {
+            $("#loadingImage").show();
+            $("#target_table").text("");
+          },
+          data: {},
+          success: function(response) {
+            console.log(response);
+            location.reload();
+          },
+          error: function(xhr) {
+            console.log('there was an error')
+            console.log(xhr);
+          },
+          complete: function(xhr, textStatus) {
+            console.log(textStatus);
+            $("#loadingImage").hide();
+          }
+        });
+      }
+
+      function planProject() {
+          var productID = $("#productId").val();
+          var productName = $("#productId option:selected").text().trim();
+          var loc = window.location.origin  + "/planProject?productId=" + productID + "&productName=" + productName;
+          console.log("Redirecting user to " + loc);
+          window.location.href = loc;
+      }
+
+      function sendDeliveryScheduleEmail() {
+        $.ajax({
+          url: "sendDeliveryScheduleEmail",
+          type: "get",
+          beforeSend: function(xhr, settings) {
+            $("#loadingImage").show();
+            $("#target_table").text("");
+          },
+          data: {'routific_project_id': $( "#routific-project-id option:selected" ).val()},
+          success: function(response) {
+            console.log(response);
+            alert(response.message);
+            location.reload();
+          },
+          error: function(xhr) {
+            showMessage(($.parseJSON(xhr.responseText)).message);
+            console.log('there was an error')
+            console.log(xhr);
+          },
+          complete: function(xhr, textStatus) {
+            console.log(textStatus);
+            $("#loadingImage").hide();
+          }
+        });
+      }
+
+      $(document).on('click', "#btn-squarespace", getSquareSpaceCSV);
+      $(document).on('click', "#btn-routific", getRoutificCSV);
+      $(document).on('click', "#btn-labels", getLabelsDocx);
+      $(document).on('click', "#btn-create-routific-project", showHideCreateRoutificProjectDiv);
+      $(document).on('click', "#btn-update-routific-project", showHideUpdateRoutificProjectDiv);
+      $(document).on('click', "#btn-load-routific-project-data", loadRoutificProjectData);
+      $(document).on('click', "#btn-create-routific-project-now", createRoutificProject);
+      $(document).on('click', "#btn-create-empty-routific-project-now", createEmptyRoutificProject);
+      $(document).on('click', "#hide-message", hideMessageDiv);
+      $(document).on('click', "#refresh-routific-projects-list", reloadRoutificProjects);
+      $(document).on('click', "#btn-move-to-another-project", showHideMoveToAnotherProjectDiv);
+      $(document).on('click', "#btn-move-to-another-project-now", moveToAnotherProject);
+      $(document).on('click', "#btn-deliver-later", deliverLater);
+      $(document).on('click', "#btn-csa", showHideCSA);
+      $(document).on('click', "#btn-csa-load-data", loadDataCSA);
+      $(document).on('click', "#refresh-product-list", refreshProductList);
+      $(document).on('click', "#btnPlanProject", planProject);
+      $(document).on('click', "#btn-delivery-schedule", sendDeliveryScheduleEmail);
+      $( "#project_date" ).datepicker({minDate : 0});
+  });
+  </script>
+
+<style>
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px;
+  border: 1px solid black;
+}
+
+tr:nth-child(even) {background-color: #02d4b4;}
+</style>
+
+{% else %}
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include '_sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include '_topbar.html' %}
+                <!-- End of Topbar -->
+
+                {% include '_messages.html' %}
+                {% if current_user.is_admin or 'dashboard' in all_permissions %}
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+
+                        <!-- Page Heading -->
+                        <div class="row">
+                            <div class=" col-md-8 d-sm-flex align-items-center justify-content-between mb-4">
+                                <h1 class="h3 mb-0 text-gray-800">{{bom.selected_product_name}}</h1>
+                            </div>
+                            {% if bom.products_list %}
+                            <div class="col-md-3">
+                            <form type="GET">
+                                <select name="prod_id" class="form-control">
+                                    {% for prod in bom.products_list %}
+                                        <option value="{{prod[0]}}"  {% if bom.selected_product == prod[0] %} selected {% endif %}>{{prod[1]}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-1">
+                                <button id=""  class="btn btn-outline-dark">Show</button>
+                            </div>
+                            </form>
+                            {% endif %}
+                        </div>  <!-- end of row -->
+    {% if bom %}
+                    <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-primary shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                    Orders (Current Month)</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{bom.orders_current_month}}</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">Avg. SP = ${{'%0.2f'| format(bom.avg_sales_price_this_month | float)}}</div>
+                                            </div>
+    {#                                        <div class="col-auto">#}
+    {#                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>#}
+    {#                                        </div>#}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-success shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                    Orders (Last Month)</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{bom.orders_last_month}}</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">Avg. SP = ${{'%0.2f'| format(bom.avg_sales_price_last_month|float)}}</div>
+                                            </div>
+    {#                                        <div class="col-auto">#}
+    {#                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>#}
+    {#                                        </div>#}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-info shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Orders (Current Week)
+                                                </div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{bom.orders_current_week}}</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">Avg. SP = ${{'%0.2f'|format(bom.avg_sales_price_this_week|float)}}</div>
+                                            </div>
+    {#                                        <div class="col-auto">#}
+    {#                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>#}
+    {#                                        </div>#}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-warning shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                    Orders (Last Week)</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{bom.orders_last_week}}</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">Avg. SP = ${{'%0.2f'|format(bom.avg_sales_price_last_week|float)}}</div>
+                                            </div>
+    {#                                        <div class="col-auto">#}
+    {#                                            <i class="fas fa-comments fa-2x text-gray-300"></i>#}
+    {#                                        </div>#}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-warning shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                    Monthly Revenue</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">${{'%0.2f'|format(bom.monthly_revenue|float)}}</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    {% endif %}
+                        <div class="row">
+
+                            <!-- Area Chart -->
+                            <div class="col-xl-8 col-lg-7">
+                                <div class="card shadow mb-4">
+                                    <!-- Card Header - Dropdown -->
+                                    <div
+                                        class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                        <h6 class="m-0 font-weight-bold text-primary">Orders Overview</h6>
+                                        <div class="dropdown no-arrow">
+                                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                                aria-labelledby="dropdownMenuLink">
+                                                <div class="dropdown-header">Actions:</div>
+                                                <a class="dropdown-item" id="refreshChart">Refresh</a>
+    {#                                            <div class="dropdown-divider"></div>#}
+    {#                                            <a class="dropdown-item" href="#">Something else here</a>#}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Card Body -->
+                                    <div class="card-body">
+                                        <div class="chart-area">
+                                            <canvas id="myAreaChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+    {% if routes %}
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">All routes CSA 2021</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="routes_table"  class="table table-bordered">
+                                    <thead><tr><th>#</th><th>Date</th><th>Route</th><th>Total<br/>Distance (km)</th><th>Visits</th><th>Drivers</th><th>workingTime</th><th>travelTime</th><th>idleTime</th><th>Unserved</th></tr></thead>
+                                    <tbody>
+                                        {% for p in routes %}
+                                                <tr><td>{{ loop.index }}</td>
+                                                    <td>{{  p.date }}</td>
+                                                    <td class="left" data-value="{{ p._id }}">{{  p.name }}</td>
+                                                    <td>{{  '%0.2f'| format(p.distance|float) }}</td>
+                                                    <td>{{  p.visitCount }}</td>
+                                                    <td>{{  p.vehicleCount }}</td>
+                                                    <td>{{  p.workingTime }}</td>
+                                                    <td>{{  p.travelTime }}</td>
+                                                    <td>{{  p.idleTime }}</td>
+                                                    <td>{{  p.unservedCount }}</td>
+                                                </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                        <tfoot><tr><tr><td>#</td><td>Date</td><td>Route</td><td>Distance (km)</td><td>Visits</td><td>Drivers</td><td>workingTime</td><td>travelTime</td><td>idleTime</td><td>Unserved</td></tr></tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+    {% endif %}
+
+    {% if reschedules %}
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">All reschedules April 2021</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="reschedules_table"  class="table table-bordered">
+                                    <thead>
+        <tr><th>#</th><th>Order ID</th><th>Email</th><th>Modification Date<th>Action</th></tr></thead>
+                                    <tbody>
+                                        {% for r in reschedules %}
+                                            <tr><td>{{ loop.index }}</td>
+                                                <td>{{ r.order_id }}</td>
+                                                <td>{{ r.user_email }}</td>
+                                                <td>{{ r.activity_on|formatdatetime }}</td>
+                                                <td>{{ r.action }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                        <tfoot><tr><td>#</td><td>Order ID</td><td>Email</td><td>Modification Date<td>Action</td></tr></tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+    {% endif %}
+                    </div>
+                    <!-- /.container-fluid -->
+
+                </div>
+
+                    <!-- Routific Stats Start-->
+                    <div class="container-fluid">
+                        <!-- Page Heading -->
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Routific stats</h1>
+                            <!--a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                                    class="fas fa-download fa-sm text-white-50"></i> Generate Report</a-->
+                        </div>
+    {% if overall_rs %}
+                        <div class="row">
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card border-left-primary shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                        Routific Projects since 15 Apr. 2021</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{overall_rs.num_projects}}</div>
+                                                </div>
+        {#                                        <div class="col-auto">#}
+        {#                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>#}
+        {#                                        </div>#}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card border-left-success shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                        Average Success Rate</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{overall_rs.success_rate}}</div>
+                                                </div>
+        {#                                        <div class="col-auto">#}
+        {#                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>#}
+        {#                                        </div>#}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card border-left-info shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Average number of visits
+                                                    </div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{'%0.2f'|format(overall_rs.visit_count|float)}}</div>
+                                                </div>
+        {#                                        <div class="col-auto">#}
+        {#                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>#}
+        {#                                        </div>#}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card border-left-warning shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                        Average distance (miles)</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{'%0.2f'|format(overall_rs.distance|float)}}</div>
+                                                </div>
+        {#                                        <div class="col-auto">#}
+        {#                                            <i class="fas fa-comments fa-2x text-gray-300"></i>#}
+        {#                                        </div>#}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card border-left-warning shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                        Average Working Time</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{'%0.2f'|format(overall_rs.working_time|float)}}</div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        <div class="row">
+                            <!-- Area Chart -->
+                            <div class="col-xl-8 col-lg-7">
+                                <div class="card shadow mb-4">
+                                    <!-- Card Header - Dropdown -->
+                                    <div
+                                        class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                        <h6 class="m-0 font-weight-bold text-primary">Routific</h6>
+                                        <div class="dropdown no-arrow">
+                                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                                aria-labelledby="dropdownMenuLink">
+                                                <div class="dropdown-header">Actions:</div>
+                                                <a class="dropdown-item" id="refreshChart">Refresh</a>
+    {#                                            <div class="dropdown-divider"></div>#}
+    {#                                            <a class="dropdown-item" href="#">Something else here</a>#}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Card Body -->
+                                    <div class="card-body">
+                                        <div class="chart-area">
+                                            <canvas id="routificStatsChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    {% endif %}
+                    <!-- /.container-fluid -->
+                    </div>
+                    <!-- Routific Stats End-->
+
+                    <!-- Squarespace Stats Start-->
+                    <div class="container-fluid">
+                        <!-- Page Heading -->
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Squarespace stats</h1>
+                            <!--a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                                    class="fas fa-download fa-sm text-white-50"></i> Generate Report</a-->
+                        </div>
+
+                        <div class="row">
+                            <!-- Area Chart -->
+                            <div class="col-xl-8 col-lg-7">
+                                <div class="card shadow mb-4">
+                                    <!-- Card Header - Dropdown -->
+                                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                        <h6 class="m-0 font-weight-bold text-primary">Sources of SquareSpace orders</h6>
+                                        <div class="dropdown no-arrow">
+                                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                                aria-labelledby="dropdownMenuLink">
+                                                <div class="dropdown-header">Actions:</div>
+                                                <a class="dropdown-item" id="refreshChart">Refresh</a>
+    {#                                            <div class="dropdown-divider"></div>#}
+    {#                                            <a class="dropdown-item" href="#">Something else here</a>#}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Card Body -->
+                                    <div class="card-body">
+                                        <div class="chart-pie">
+                                            <canvas id="squarespace-order-sources"></canvas>
+                                        </div>
+                                        <div class="mt-4 text-center small">
+                                            <span class="mr-2">
+                                                <i class="fas fa-circle text-primary"></i> A friend
+                                            </span>
+                                            <span class="mr-2">
+                                                <i class="fas fa-circle text-success"></i> Email
+                                            </span>
+                                            <span class="mr-2">
+                                                <i class="fas fa-circle text-info"></i> Facebook
+                                            </span>
+                                            <span class="mr-2">
+                                                <i class="fas fa-circle text-google"></i> Google
+                                            </span>
+                                            <span class="mr-2">
+                                                <i class="fas fa-circle text-instagram"></i> Instagram
+                                            </span>
+                                            <span class="mr-2">
+                                                <i class="fas fa-circle text-other"></i> Other
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <!-- /.container-fluid -->
+                    </div>
+                    <!-- Squarespace Stats End-->
+
+                    <!-- Customer Satisfaction Form Stats Start-->
+                    <div class="container-fluid">
+                        <!-- Page Heading -->
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Customer Satisfaction stats</h1>
+                        </div>
+
+                        <div class="row">
+                            <!-- Content Column -->
+                            <div class="col-lg-12 mb-4">
+
+                                <!-- Project Card Example -->
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">Customer Satisfaction Per Product</h6>
+                                    </div>
+                                    <div class="card-body" id="qas">
+                                            {% if bom.products_list %}
+                                            <div class="col-md-6">
+                                              <select name="cust-satis-chart-prod" class="form-control cust-satis-chart-prod">
+                                                  {% for prod in bom.products_list %}
+                                                      <option value="{{prod[0]}}"  {% if bom.selected_product == prod[0] %} selected {% endif %}>{{prod[1]}}</option>
+                                                  {% endfor %}
+                                              </select>
+                                            </div>
+                                            {% endif %}
+                                        <canvas id="customer_satisfaction_chart_per_product"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <!-- /.container-fluid -->
+                    </div>
+                    <!-- Customer Satisfaction Form Stats End-->
+                {% else %}
+                    <style>
+                    .pc-center{
+                        height: 100vh;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                    </style>
+                    <div class="pc-center">Welcome</div>
+                {% endif %}
+
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Southside Blooms</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+    <style>
+        .text-google {
+            color: #f15c58 !important;
+        }
+        .text-instagram {
+            color: #f1f158 !important;
+        }
+        .text-other {
+            color: #5cf15c !important;
+        }
+    </style>
+
+    {% include '_bottom_components.html' %}
+</body>
+
+
+{% endif %}
+{% endblock %}

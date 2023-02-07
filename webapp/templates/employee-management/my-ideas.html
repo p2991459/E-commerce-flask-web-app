@@ -1,0 +1,125 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">My Ideas</h3>
+        <div class="box">
+            <button id="btn-add-custom-doc" class="btn btn-outline-dark mt-1 pc-margin-bottom-30"  data-toggle="modal" data-target="#addIdea">Submit new Idea</button>
+            <table class="table table-borderless" id="tbl-my-idea">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Submitted On</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for idea in my_ideas %}
+                    <tr>
+                        <td>
+                            {{ idea.title}}
+                        </td>
+                        <td>
+                            {{ idea.description | truncate(50, True, '...')}}
+                        </td>
+                        <td>
+                            {{ idea.submitted_on.strftime('%Y-%m-%d')}}
+                        </td>
+                        <td>
+                            <a class="btn btn-primary delete" onclick="deleteIdea({{idea.id}}, 'delete_idea')">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addIdea" tabindex="-1" role="dialog" aria-labelledby="tableModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <form action="" enctype="multipart/form-data" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tableModalLabel">Submit an Idea</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table-responsive">
+                            <tr>
+                                <td><label for="idea_title">Title:</label></td>
+                                <td><input type="text" name="idea_title" id="idea_title" required value=""/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="idea_description">Description:</label></td>
+                                <td>
+                                    <textarea name="idea_description" id="idea_description" required rows="10" cols="60"></textarea>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="action_name" id="action_name" value="submit_idea"/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-upload-video">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function deleteIdea(id, type) {
+              if (confirm("Are you sure to delete row with ID " + id + "?")) {
+                  $.ajax({
+                    url: "",
+                    type: "post",
+                    beforeSend: function (xhr, settings) {
+                        console.log("Going to delete " + id);
+                        $("#loadingImage").show();
+                    },
+                    data: {
+                        action_name: type,
+                        idea_id: id
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        alert(response.message);
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                        $("#loadingImage").hide();
+                        window.location = window.location.href;
+                    }
+                  });
+              }
+          }
+        $(document).ready(function () {
+            $('#tbl-my-idea').DataTable({
+                paging: false,
+                responsive: true,
+                columnDefs: [
+                    { responsivePriority: 10001, targets: 1 },
+                ]
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,95 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">Labor Calculator</h3>
+        <div class="box">
+            <table class="table table-borderless l-calculator-input-table">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Floral Arrangments</th>
+                        <th>Avg. Stem Use</th>
+                        <th>Estimated Volume</th>
+                        <th>Time Period</th>
+                        <th>Total Stems</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f_arr in floral_arr_list %}
+                    <tr>
+                        <input type="hidden" class="avg-stm-use" value="{{key_value_data[f_arr.stem_use].amount}}">
+                        <input type="hidden" class="flrl-arng-abrv" value="{{f_arr.abrv}}">
+                        <th>{{f_arr.name}}</th>
+                        <td>{{key_value_data[f_arr.stem_use].amount}} <small>{{key_value_data[f_arr.stem_use].equation}}</small></td>
+                        <td><input type="number" class="est-volume form-control text-center" min="0" value="0"></td>
+                        <td>Monthly</td>
+                        <td class="total-stems text-center">0</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+
+            <div class="text-center">
+                <input type="button" value="calculate" class="btn-calculate btn btn-outline-dark m-3"/>
+            </div>
+
+
+            <!-- Calculated Results -->
+            <table class="table table-bordered table-striped mt-5 monthly_weekly_cal">
+              <thead class="table-dark">
+                <tr>
+                  <th>Term</th>
+                  <th>Monthly</th>
+                  <th>Weekly</th>
+                  <th>Unit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                    <th colspan="4" class="text-center">
+                        . . .
+                    </th>
+                </tr>
+              </tbody>
+            </table>
+
+            <hr class="my-5" />
+            <div class="form-inline my-2">
+                <h4 class="form-inline mr-auto ml-md-3 my-2 my-md-0 font-weight-bold text-primary">Team Size Calculation</h4>
+                <p class="my-auto mr-2">shifts on a weekly basis: </p>
+                <select class="form-control col-sm-1 float-right number-of-shift">
+                    {% for i in range(1, 11) %}
+                        <option>{{i}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <table class="table table-bordered table-striped team-size-result">
+              <thead class="table-dark">
+                <tr>
+                  <th>Name</th>
+                  <th>Team Size</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                    <th colspan="4" class="text-center">
+                        . . .
+                    </th>
+                </tr>
+              </tbody>
+            </table>
+        </div>
+    </div>
+    <br/>
+    <br/>
+{% endblock %}

@@ -1,0 +1,117 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+    {{ messages[0] }}
+</div>
+{% endif %}
+{% endwith %}
+<style>
+    .cal-legend {
+        display: inline-flex;
+        line-height: 0.6;
+    }
+    .cal-legend > div {
+        margin: 0 2px; 
+    }
+@media (max-width: 767.98px) {
+    .fc .fc-toolbar.fc-header-toolbar {
+        display: block;
+        text-align: center;
+    }
+
+    .fc-header-toolbar .fc-toolbar-chunk {
+        display: block;
+        margin: 2px auto;
+    }
+}
+</style>
+<div class="column is-8 is-offset-2">
+    <div class="mb-2">
+        <h3 class="title" style="display: inline-block;">Calendar Events</h3>
+    </div>
+    <div class="box">
+    </div>
+</div>
+<div class="text-center">
+    <fieldset class="cal-legend">
+        <div class="fc-daygrid-event-dot" style="border-color:#B266FF"></div> Presentation
+        <div class="fc-daygrid-event-dot" style="border-color:#99004C"></div> Event
+        <div class="fc-daygrid-event-dot" style="border-color:#FF6666"></div> Volunteer Days
+    </fieldset>
+
+</div>
+<div id="Events-calendar"></div>
+
+<script>
+    // fullcalendar implementation
+    var calendar;
+    var currentUser = '{{current_user.name}}'
+    var t = new Date()
+    var today =  ('0'+(t.getMonth()+1)).slice(-2) + '-' + 
+                    ('0' + t.getDate()).slice(-2) + '-' + 
+                    t.getFullYear();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var calElm = document.getElementById('Events-calendar')
+        calendar = new FullCalendar.Calendar(calElm, {
+            events:'/get_dates',
+            selectable: true,
+            allDaySlot: false,
+            slotEventOverlap: false,
+            initialView: 'dayGridMonth',
+            displayEventTime:false,
+            dayCount: 8,
+            eventDisplay: "block",
+            headerToolbar: {
+              left: 'prev,next today',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            height: 'auto',
+            dateClick: function (info) {
+                date = info.date 
+                allDay = info.allDay 
+                jsEvent = info.jsEvent 
+                view = info.view
+
+                if (info.view.type == 'dayGridMonth') {
+                    calendar.changeView('timeGridWeek');
+                    calendar.gotoDate(date)
+                }
+            },
+            select: function(info) {
+                // console.log(info)
+
+                if (info.view.type != 'dayGridMonth') {
+                    s = info.start
+                    e = info.end
+                    var start_d =  ('0'+(s.getMonth()+1)).slice(-2) + '-' +
+                                    ('0' + s.getDate()).slice(-2) + '-' +
+                                    s.getFullYear() + ' ' + 
+                                    ('0' + s.getHours()).slice(-2) + ':' + 
+                                    ('0' + s.getMinutes()).slice(-2);
+                    var end_d =  ('0'+(e.getMonth()+1)).slice(-2) + '-' + 
+                                    ('0' + e.getDate()).slice(-2) + '-' + 
+                                    e.getFullYear() + ' ' + 
+                                    ('0' + e.getHours()).slice(-2) + ':' + 
+                                    ('0' + e.getMinutes()).slice(-2);
+                    
+                    $('#pickup_time').val(start_d)
+                    $('#return_time').val(end_d)
+                    $('#date').val(today)
+                    $('#name').val(currentUser)
+                    $('#EventRequestModal').modal('toggle')
+                }
+            },
+            eventClick: function(info) {
+                loadDataAndOpenRequestEditModal(info.event)
+            },              
+        });
+        calendar.render();
+    });
+
+</script>
+{% endblock %}

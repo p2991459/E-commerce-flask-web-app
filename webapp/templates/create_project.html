@@ -1,0 +1,44 @@
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Create Project</h1>
+    </div>
+
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-12 mb-8">
+
+            <!-- Project Card -->
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Enter routific project details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="col-sm-12 pc-input-field">
+                        <label for="project_name">Project Name</label>
+                        <input id="project_name" placeholder="The name of the project" class="form-control" />
+                    </div>
+                    <div class="col-sm-12 pc-input-field">
+                        <label for="project_date">Project Date</label>
+                        <input id="project_date" placeholder="The project date" class="form-control" />
+                    </div>
+                    <div class="col-sm-5 pc-input-field">
+                        <label for="project_drivers">Driver (Ctrl + click to select multiple)</label>
+                        {% if data %}
+                        <select id="project_drivers" multiple class="form-control">
+                            {% for driver in data %}
+                            <option >{{driver.id}}- {{driver.driver_name}}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        -No driver available
+                        {% endif %}
+                    </div>
+                    <button id="btn-create-routific-project-now" class="btn btn-outline-dark">Create now!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

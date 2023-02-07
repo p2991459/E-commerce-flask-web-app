@@ -1,0 +1,190 @@
+<!-- templates/delivery_planner.html -->
+
+{% extends "new_base.html" %}
+
+{% block content %}
+    <div style="text-align: center">
+        <img id="loadingImage" src="loading.gif" alt="loading"
+             style="display: none; height: 35px; width: 35px;"/>
+    </div>
+    <div class="dd-main">
+        <div style="text-align: left">
+            {% if delivery_dates | length > 0 %}
+                <h1>Zones and Delivery Dates</h1>
+                <table id="zone_dates">
+                    <thead>
+                    <td>S.No.</td>
+                    <td>Zone</td>
+                    <td>Dates</td>
+                    <td>Action</td>
+                    </thead>
+                    {% for dd in delivery_dates %}
+                        <tr>
+                            <td>{{ loop.index }}.</td>
+                            <td>{{ dd.zone }}</td>
+                            <td>{{ dd.delivery_date }}</td>
+                            <td><a href="javascript:deleteDeliveryDate({{ dd.id }});">Delete</a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+            <div>
+                <h2>Add a delivery date</h2>
+                <div>
+                        <select id="zone">
+                            {% for zone in zones_zip_code_dict.items() %}
+                                <option value="{{ zone[0] }}">{{ zone[0] }}</option>
+                            {% endfor %}
+                        </select>
+                        <label>
+                            Delivery date: <input type="text"
+                                                  name="delivery_date"
+                                                  id="delivery_date"/>
+                        </label>
+                        <button id="btn-save-delivery-date">Save</button>
+                </div>
+            </div>
+            <br/>
+            <h2>Delivery Zones and zip codes</h2>
+            <table id="zone_zip_codes">
+                <thead>
+                <td>S.No.</td>
+                <td width="200px">Zone</td>
+                <td>Zip codes</td>
+                </thead>
+                {% for zone in zones_zip_code_dict.items() %}
+                    <tr>
+                        <td>{{ loop.index }}.</td>
+                        <td>{{ zone[0] }}</td>
+                        <td>{{ zone[1] }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <script>
+        function saveDeliveryDate() {
+            $.ajax({
+                url: "saveDeliveryDate",
+                type: "post",
+                beforeSend: function (xhr, settings) {
+                    $("#loadingImage").show();
+                },
+                data: {
+                    zone: $('#zone').val(),
+                    delivery_date: $('#delivery_date').val(),
+                },
+                success: function (response) {
+                    console.log(response);
+                    alert(response.message);
+                },
+                error: function (xhr) {
+                    console.log('there was an error')
+                    console.log(xhr);
+                },
+                complete: function (xhr, textStatus) {
+                    console.log(textStatus);
+                    $("#loadingImage").hide();
+                    window.location.reload();
+                }
+            });
+        }
+
+        function deleteDeliveryDate(id) {
+            $.ajax({
+                url: "deleteDeliveryDate",
+                type: "post",
+                beforeSend: function (xhr, settings) {
+                    $("#loadingImage").show();
+                },
+                data: {
+                    id: id
+                },
+                success: function (response) {
+                    console.log(response);
+                    alert(response.message);
+                },
+                error: function (xhr) {
+                    console.log('there was an error')
+                    console.log(xhr);
+                },
+                complete: function (xhr, textStatus) {
+                    console.log(textStatus);
+                    $("#loadingImage").hide();
+                    window.location.reload();
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            var datelist = [];
+            {% if possible_delivery_dates %}
+                datelist = '{{ possible_delivery_dates }}';
+                datelist = datelist.split(",");
+            {% endif %}
+            $("#delivery_date").datepicker({minDate: 0,
+                /*beforeShowDay: function(d) {
+                    // normalize the date for searching in array
+                    var dmy = "";
+                    dmy += ("00" + d.getDate()).slice(-2) + "-";
+                    dmy += ("00" + (d.getMonth() + 1)).slice(-2) + "-";
+                    dmy += d.getFullYear();
+                    return [$.inArray(dmy, datelist) >= 0 ? true : false, ""];
+                }*/
+            });
+            $(document).on('click', "#btn-save-delivery-date", saveDeliveryDate);
+        });
+    </script>
+    <style>
+#zone_dates {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#zone_dates td, #zone_dates th {
+  border: 1px solid #fff;
+  padding: 8px;
+}
+
+#zone_dates thead td {
+    font-weight: bold;
+}
+
+#zone_dates tr:nth-child(even){background-color: #00A1A2;}
+
+#zone_dates tr:hover {background-color: #007152;}
+
+#zone_dates th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4CAF50;
+  color: white;
+}
+#zone_zip_codes {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#zone_zip_codes td, #zone_zip_codes th {
+  border: 1px solid #fff;
+  padding: 8px;
+}
+
+#zone_zip_codes thead td {
+    font-weight: bold;
+}
+
+#zone_zip_codes tr:nth-child(even){background-color: #00A1A2;}
+
+#zone_zip_codes tr:hover {background-color: #007152;}
+
+#zone_zip_codes th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4CAF50;
+  color: white;
+}
+</style>
+{% endblock %}

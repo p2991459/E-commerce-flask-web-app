@@ -1,0 +1,276 @@
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Zones and Delivery Dates</h1>
+    </div>
+
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-12 mb-8">
+
+            <!-- Project Card -->
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Add a
+                        delivery date</h6>
+                </div>
+                <div class="card-body">
+                    <div class="col-sm-12">
+                        <label for="zone">Delivery Zone</label><select
+                            id="zone" class="pc-input-field">
+                        {% for zone in zones_zip_code_dict.items() %}
+                            <option value="{{ zone[0] }}">{{ zone[0] }}</option>
+                        {% endfor %}
+                    </select>
+                        <label>
+                            Delivery date: <input type="text"
+                                                  name="delivery_date"
+                                                  id="delivery_date"/>
+                        </label>
+                        <button id="btn-save-delivery-date">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-8" style="margin-top: 30px;">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Delivery
+                        dates <span
+                                style="font-size: smaller; font-style: italic; font-weight: normal">(Used while sending of reschedule emails)</span>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table display responsive table-bordered" id="zone_dates" style="width: 100% !important;">
+                            <thead>
+                                <th>
+                                    <input name="select_all" value="1" class="dt-select-all" type="checkbox" />
+                                </th>
+                                <th>S.No.</th>
+                                <th>Zone</th>
+                                <th>Dates</th>
+                                <th>Action</th>
+                            </thead>
+                            <tbody>
+                            {% for dd in delivery_dates %}
+                                <tr>
+                                    <td></td>
+                                    <td>{{ dd.id }}</td>
+                                    <td>{{ dd.zone }}</td>
+                                    <td>{{ dd.delivery_date }}</td>
+                                    <td>
+                                        <a href="javascript:deleteDeliveryDate({{ dd.id }});">Delete</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <th>
+                                    <input name="select_all" value="1" class="dt-select-all" type="checkbox" />
+                                </th>
+                                <th>S.No.</th>
+                                <th>Zone</th>
+                                <th>Dates</th>
+                                <th>Action</th>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-8" style="margin-top: 30px;">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Order per zone/zip</h6>
+                </div>
+                <div class="card-body">
+                    <div>
+                        <label for="project_name">Select a product</label>
+                        <select name="productId" id="productId">
+                            {% for product in data.data %}
+                                {% if '2021' in product.product_name and 'CSA' in product.product_name %}
+                                <option value="{{ product.productId }}">{{ product.product_name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <style>
+                        .check_boxes_zip_ul {
+                            list-style: none;
+                            -webkit-column-count: 4;
+                            -moz-column-count: 4;
+                            column-count: 4;
+                        }
+                    </style>
+                    <table class="table table-bordered" id="zone_zips_dataTable" cellspacing="0">
+                        <thead><tr><th>#</th><th>Zone</th><th>Total orders</th><th>Zips</th><th>Edit</th></tr></thead>
+                        <tfoot><tr><th>#</th><th>Zone</th><th>Total orders</th><th>Zips</th><th>Edit</th></tr></tfoot>
+                        <tbody>
+                        {% for zone in zones_zip_code_dict.items() %}
+                            <tr>
+                                <td>{{ loop.index }}.</td>
+                                <td>{{ zone[0] }}</td>
+                                <td>{{ zone[1].cnt }}</td>
+                                <td><ul class="check_boxes_zip_ul">
+                                    {% for zip in zone[1].zips %}
+                                        <li><input class='chk_zip' type='checkbox' id='chk_zip_{{ zip }}' name='chk_zip_{{ zip }}' value='{{ zip.split(" ")[0] }}'  />&nbsp;&nbsp;<label for='chk_zip_{{ zip }}'>{{ zip }}</label></li>
+                                    {% endfor %}
+                                    <span style="display: none;">#######{{ zone[1].actual_zips | join(', ')}}#######</span>
+                                    </ul>
+                                </td>
+                                <td class="edit"><a>Edit</a></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% if missing_zones_for_zips %}
+                <div class="card shadow mb-8" style="margin-top: 30px;">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Unassigned zips</h6>
+                    </div>
+                    <div class="card-body">
+
+                        <table id="zone_zip_codes">
+                            <thead>
+                            <td width="100px">S.No.</td>
+                            <td width="200px">Zip</td>
+                            </thead>
+                            {% for zip in missing_zones_for_zips %}
+                                <tr>
+                                    <td>{{ loop.index }}.</td>
+                                    <td>{{ zip }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+<div class="modal fade" id="zoneZipsModal" tabindex="-1" role="dialog" aria-labelledby="zoneZipsModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="zoneZipsModalLabel">Edit details #<span id="title_zz_id"></span></h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table>
+                    <tr><td>Zone Zip #</td><td><input type="text" id="zz_id" disabled/></td></tr>
+                    <tr><td>Zone Name:</td><td><input type="text" id="zone_name" disabled/></td></tr>
+                    <tr><td>Zone Zips:</td><td><input type="text" id="zone_zips"/></td></tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-update-zone-zips">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="createZoneModal" tabindex="-1" role="dialog" aria-labelledby="createZoneModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createZoneModalLabel">Enter details of the new zone</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table>
+                    <tr><td><label for="cnz_zone_name">Zone Name:</label></td><td><input type="text" id="cnz_zone_name"/></td></tr>
+                    <tr><td><label for="cnz_zone_zips">Zone Zips:</label></td><td><input type="text" id="cnz_zone_zips"/></td></tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-create-zone-now">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+    <script>
+        function saveDeliveryDate() {
+            $.ajax({
+                url: "saveDeliveryDate",
+                type: "post",
+                beforeSend: function (xhr, settings) {
+                    $("#loadingImage").show();
+                },
+                data: {
+                    zone: $('#zone').val(),
+                    delivery_date: $('#delivery_date').val(),
+                },
+                success: function (response) {
+                    console.log(response);
+                    alert(response.message);
+                },
+                error: function (xhr) {
+                    console.log('there was an error')
+                    console.log(xhr);
+                },
+                complete: function (xhr, textStatus) {
+                    console.log(textStatus);
+                    $("#loadingImage").hide();
+                    window.location.reload();
+                }
+            });
+        }
+
+        function deleteDeliveryDate(id) {
+            $.ajax({
+                url: "deleteDeliveryDate",
+                type: "post",
+                beforeSend: function (xhr, settings) {
+                    $("#loadingImage").show();
+                },
+                data: {
+                    id: id
+                },
+                success: function (response) {
+                    console.log(response);
+                    alert(response.message);
+                },
+                error: function (xhr) {
+                    console.log('there was an error')
+                    console.log(xhr);
+                },
+                complete: function (xhr, textStatus) {
+                    console.log(textStatus);
+                    $("#loadingImage").hide();
+                    window.location.reload();
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            var datelist = [];
+            {% if possible_delivery_dates %}
+                datelist = '{{ possible_delivery_dates }}';
+                datelist = datelist.split(",");
+            {% endif %}
+            $("#delivery_date").datepicker({
+                minDate: 0,
+                /*beforeShowDay: function(d) {
+                    // normalize the date for searching in array
+                    var dmy = "";
+                    dmy += ("00" + d.getDate()).slice(-2) + "-";
+                    dmy += ("00" + (d.getMonth() + 1)).slice(-2) + "-";
+                    dmy += d.getFullYear();
+                    return [$.inArray(dmy, datelist) >= 0 ? true : false, ""];
+                }*/
+            });
+            $(document).on('click', "#btn-save-delivery-date", saveDeliveryDate);
+        });
+    </script>
+{% endblock %}

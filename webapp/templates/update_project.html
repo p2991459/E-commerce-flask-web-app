@@ -1,0 +1,102 @@
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Update a routific project</h1>
+    </div>
+
+    <button class="btn-outline-primary rounded" style="margin-bottom: 30px;"
+            id="refresh-routific-projects-list">Reload routific projects list
+    </button>
+
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-12 mb-8">
+
+            <!-- Project Card -->
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Select a
+                        routific project</h6>
+                </div>
+                <div class="card-body">
+                    <select name="routific-project-id"
+                            id="routific-project-id" class="form-control">
+                        {% for p in data.projects %}
+                            {% if p.routific_project_id == '5f5eeefcac034800172121f8' %}
+                                <option value="{{ p.routific_project_id }}">
+                                    DELIVER LATER
+                                </option>
+                            {% else %}
+                                <option value="{{ p.routific_project_id }}">{{ p.routific_project_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button id="btn-load-routific-project-data" class="btn btn-outline-dark mt-1">Load data
+                    </button>
+                    <button id="btn-move-to-another-project" disabled class="btn btn-outline-dark mt-1">Move to another project</button>
+                    <button id="btn-delivery-schedule" class="btn btn-outline-dark mt-1">Send Delivery Schedule Email</button>
+                    <button id="btn-export-csv" class="btn btn-outline-dark mt-1">Export CSV</button>
+                    <button id="btn-show-multiple-active-orders-by-same-customer" class="btn btn-outline-dark mt-1" >Show multiple active orders by same customer</button>
+                    <div id="target_table">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updateRoutificProjectModal" tabindex="-1" role="dialog" aria-labelledby="updateRoutificProjectModalLabel"
+    aria-hidden="true">
+    <style>
+        .dataTable .selected {
+            background-color: #BFDDE0;
+        }
+        @media (min-width:576px) {
+         .modal-dialog {
+          max-width:650px !important;
+          margin:1.75rem auto
+         }}
+    </style>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateRoutificProjectModalLabel">Please choose a project to move the stop(s): </h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Chosen stop(s):
+                <div id="from_project_stops"></div>
+                <br/><br/>
+                From project: <span id="from_project_name"></span>
+                <br/><br/>
+                To project: <div id="to_project_list">
+                        <select name="to_project_id"
+                            id="to_project_id">
+                        {% for p in data.projects %}
+                            {% if p.routific_project_id == '5f5eeefcac034800172121f8' %}
+                                <option value="{{ p.routific_project_id }}">
+                                    DELIVER LATER
+                                </option>
+                            {% else %}
+                                <option value="{{ p.routific_project_id }}">{{ p.routific_project_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+            </div>
+                <br/><br/>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" id="btn-move-to-another-project-now">Move now</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+   window.product_data = '{{ data.data|tojson|safe }}';
+</script>
+{% endblock %}

@@ -1,0 +1,95 @@
+<!-- templates/driver-settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    {% if existing_drivers %}
+        <div class="column is-8 is-offset-2">
+            <h3 class="title">Existing drivers</h3>
+            <div class="box">
+                <div class="table-responsive">
+                    <table class="table" style="margin: 0 auto;">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Name</th>
+                          <th scope="col">Phone</th>
+                          <th scope="col">Working Hours</th>
+                          <th scope="col">Actions</th>
+                        </tr>
+                      </thead>
+                      {% for driver in existing_drivers %}
+                          <tbody>
+                            <tr>
+                              <th scope="row">{{ loop.index }}</th>
+                              <td>{{ driver.driver_name }}</td>
+                              <td>{{ driver.phone_number }}</td>
+                              <td>{{ driver.working_hours }}</td>
+                                <td><a href="/driver-settings?edit=driver&id={{ driver.id }}">✎ </a>&nbsp;&nbsp;&nbsp;
+                                    <a href="/driver-settings?edit=driver&id={{ driver.id }}&delete=true" onclick="return confirm('Are you sure to delete {{ driver.driver_name }}?')">x</a></td>
+                            </tr>
+                          </tbody>
+                      {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <div class="column is-4 is-offset-4" style="margin-top: 35px">
+        <h3 class="title">{% if driver_in_edit %}Edit{% else %}Add{% endif %} driver</h3>
+        <div class="box">
+            <form method="POST" action="/driver-settings{% if driver_in_edit %}?edit=driver{% endif %}">
+                <div class="field">
+                    <div class="control">
+                        <label for="name">
+                            Name </label>
+                        <input class="input is-large" type="text"
+                                   id="name" name="name" placeholder="Name"
+                                   autofocus="" required {% if driver_in_edit %}value="{{ driver_in_edit.driver_name }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="phone_number">
+                            Phone </label>
+                        <input class="input is-large" type="text"
+                                   id="phone_number" name="phone_number" placeholder="Driver's Phone"
+                                   autofocus="" {% if driver_in_edit %}value="{{ driver_in_edit.phone_number }}"{% endif %} />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="working_hours">
+                            Working hours </label><input id="working_hours" class="input is-large" type="text"
+                                   name="working_hours" placeholder="e.g.: 08:00 - 15:00"
+                                   autofocus="" {% if driver_in_edit %}value="{{ driver_in_edit.working_hours }}"{% endif %}>
+                    </div>
+                </div>
+            {% if driver_in_edit %}
+                <input type="hidden" name="edit" value="driver" />
+                <input type="hidden" name="id" value="{{ driver_in_edit.id }}" />
+            {% else %}
+                <input type="hidden" name="new-driver" value="add" />
+            {% endif %}
+                <button class="button is-block is-info is-large">
+                    Save
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+    .control label {
+        width: 100%;
+    }
+    .control {
+        margin-bottom: 20px;
+    }
+    </style>
+{% endblock %}

@@ -1,0 +1,180 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">Key Values</h3>
+        <div class="box">
+            <button id="btn-add-k_val" class="btn btn-outline-dark mt-1 pc-margin-bottom-30">Add a k_val</button>
+            <table class="table table-borderless" id="k_vals_table">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Key Name</th>
+                        <th>Amount</th>
+                        <th>Notes</th>
+                        <th>Equation</th>
+                        <th>Abbriviation</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kv in key_val_list %}
+                    <tr>
+                        <td>{{ kv.key_name }}</td>
+                        <td>{{ kv.amount }}</td>
+                        <td>{{ kv.notes }}</td>
+                        <td>{{ kv.equation }}</td>
+                        <td>{{ kv.abrv }}</td>
+                        <td>
+                            <a class="edit" href="#" data-id="{{ kv.id }}" >✎ </a>&nbsp;
+                            <a class="delete" href="#" data-id="{{ kv.id }}" data-name="{{ kv.key_name }}">x</a>
+                       </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+<!-- modal -->
+<div class="modal fade" id="tableModalKVal" tabindex="-1" role="dialog" aria-labelledby="tableModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog pc-maxwidth-600" role="document">
+            <div class="modal-content">
+                <form action="" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tableModalLabel">KVal</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table-responsive">
+                            <tr>
+                                <td><label for="key_name">Key Name:</label></td>
+                                <td><input type="text" name="key_name" id="key_name" required value=""/>
+                                </td>
+                            </tr>
+                            <tr>
+                            <tr>
+                                <td><label for="amount">Amount:</label></td>
+                                <td><input type="number" name="amount" id="amount" required 
+                                           value="{{ k_val.amount if k_val else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="notes">Notes:</label></td>
+                                <td>
+                                    <textarea name="notes" id="notes" value=""/>
+                                    </textarea> 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="equation">Equation:</label></td>
+                                <td><input type="text" name="equation" id="equation"
+                                           value="{{ k_val.equation if k_val else '' }}"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="abbrv">Abbriviation:</label></td>
+                                <td><input type="text" name="abbrv" id="abbrv" required 
+                                           value="{{ k_val.abbrv if k_val else '' }}"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="k_val_action" id="k_val_action" value="new"/>
+                        <input type="hidden" name="id" id="id" value=""/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-k_val">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- end modal -->
+    <script>
+          function deleteKVal(id, name) {
+              if (confirm("Are you sure to delete k_val \"" + name + "\" with ID " + id + "?")) {
+                  $.ajax({
+                    url: "calculator_base",
+                    type: "post",
+                    beforeSend: function (xhr, settings) {
+                        console.log("Going to delete " + id);
+                        $("#loadingImage").show();
+                    },
+                    data: {
+                        k_val_action: 'delete',
+                        id: id
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        alert(response.message);
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                        $("#loadingImage").hide();
+                        window.location = window.location.href;
+                    }
+                  });
+              }
+          }
+        $(document).ready(function () {
+            let dt = $('#k_vals_table').DataTable(
+                {
+                    paging: false,
+                    responsive: true
+                });
+            $('#k_vals_table tbody').on('click', 'td', function (e) {
+                if (e.target.classList.contains('delete')) {
+                    deleteKVal(e.target.dataset.id, e.target.dataset.name);
+                    return false;
+                }
+                if (e.target.classList.contains('edit')) {
+                    window.eee = e;
+                    var data = dt.row(this).data();
+                    if (data === undefined) {
+                        // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+                        var hiddenNode = $(this.parentNode).prev()[0].children[0];
+                        data = dt.row(hiddenNode).data();
+                    }
+                    window.ddd = data;
+                    $("#key_name").val(data[0]);
+                    $("#amount").val(data[1]);
+                    $("#notes").val(data[2]);
+                    $("#equation").val(data[3]);
+                    $("#abbrv").val(data[4]);
+                    $("#k_val_action").val("edit");
+                    $("#id").val(e.target.dataset.id);
+                    $("#tableModalLabel").html("Edit k_val");
+                    $("#tableModalKVal").modal('show');
+                    return false;
+                }
+            });
+            function addKVal() {
+                $("#key_name").val('');
+                    $("#amount").val('');
+                    $("#notes").val('');
+                    $("#equation").val('');
+                    $("#abbrv").val('');
+                $("#id").val('');
+                $("#k_val_action").val("new");
+                $("#tableModalLabel").html("Add a new k_val");
+                $("#tableModalKVal").modal('show');
+            }
+
+            $(document).on('click', "#btn-add-k_val", addKVal);
+        });
+    </script>
+{% endblock %}

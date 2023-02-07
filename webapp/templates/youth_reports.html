@@ -1,0 +1,328 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+{% block actual_content %}
+{% include "_tab_styles.html" %}
+    <!-- Page Heading -->
+<div class="card shadow mb-8">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Youth Management Reports</h6>
+    </div>
+    <div class="card-body justify-center-content">
+        <div class="row">
+            <button id="by_youth_partner" class="btn btn-outline-dark ml-3 mr-2 mb-2">By Youth Partner</button>
+            <button id="by_youth_employee" class="btn btn-outline-dark mb-2">By Youth Employee</button>
+        </div>
+        {% if report_type and report_type == 'youth_partner' %}
+        <div>
+            <table class="table display responsive table-responsive table-bordered"
+                        id="time_tracking_table">
+                <thead>
+                <tr>
+                    <th>Youth Partner:</th>
+                    <th colspan="3">{{ sel_youth_partner.name }}</th>
+                </tr>
+                <tr>
+                    <th scope="col">Employee Name</th>
+                    <th scope="col">Day</th>
+                    <th scope="col">Attendance</th>
+                    <th scope="col">Hours Worked</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% set total_hours_worked = 0 %}
+                {% for time_track in tt_records %}
+                    <tr>
+                        <td>{{ time_track.youth_employee.first_name }}, {{ time_track.youth_employee.last_name }}</td>
+                        <td>{{ time_track.day }}</td>
+                        {% if time_track.attendance == 'P' %}
+                        <td>Present</td>
+                        {% elif time_track.attendance == 'L' %}
+                        <td>Late</td>
+                        {% elif time_track.attendance == 'NS' %}
+                        <td>Not Scheduled</td>
+                        {% elif time_track.attendance == 'U' %}
+                        <td>Unexcused Leave</td>
+                        {% endif %}
+                        <td class="text-right">{{ time_track.hours_worked }}</td>
+                        {% set total_hours_worked = total_hours_worked + time_track.hours_worked %}
+                    </tr>
+                {% endfor %}
+                    <tr>
+                        <td colspan="3" class="text-right font-weight-bold">Total Hours Worked : </td>
+                        <td class="text-right font-weight-bold">{% set hours_worked = tt_records | sum(attribute='hours_worked') | round(2, 'common') %} {{ hours_worked}}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="text-right font-weight-bold">Grand Total ( Total Hours Worked * Billing Rate({{ sel_youth_partner.billing_rate }}))</td>
+                        <td class="text-right font-weight-bold">{{ (hours_worked * sel_youth_partner.billing_rate) | round(2, 'common')}}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <th scope="col">Employee Name</th>
+                    <th scope="col">Day</th>
+                    <th scope="col">Attendance</th>
+                    <th scope="col">Hours Worked</th>
+                </thead>                    
+            </table>
+        </div>
+        {% elif report_type and report_type == 'youth_employee' %}
+        <div>
+            <table class="table display responsive table-responsive table-bordered"
+                        id="time_tracking_table">
+                <thead>
+                <tr>
+                    <th>Youth Employee:</th>
+                    <th colspan="3">{{ sel_youth_employee.first_name }}, {{ sel_youth_employee.last_name }}</th>
+                </tr>    
+                <tr>
+                    <th scope="col">Employee Name</th>
+                    <th scope="col">Day</th>
+                    <th scope="col">Attendance</th>
+                    <th scope="col">Hours Worked</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% set total_hours_worked = 0 %}
+                {% for time_track in tt_records %}
+                    <tr>
+                        <td>{{ time_track.youth_employee.first_name }}, {{ time_track.youth_employee.last_name }}</td>
+                        <td>{{ time_track.day }}</td>
+                        {% if time_track.attendance == 'P' %}
+                        <td>Present</td>
+                        {% elif time_track.attendance == 'L' %}
+                        <td>Late</td>
+                        {% elif time_track.attendance == 'NS' %}
+                        <td>Not Scheduled</td>
+                        {% elif time_track.attendance == 'U' %}
+                        <td>Unexcused Leave</td>
+                        {% endif %}
+                        <td class="text-right">{{ time_track.hours_worked }}</td>
+                        {% set total_hours_worked = total_hours_worked + time_track.hours_worked %}
+                    </tr>
+                {% endfor %}
+                    <tr>
+                        <td colspan="3" class="text-right font-weight-bold">Total Hours Worked : </td>
+                        <td class="text-right font-weight-bold">{% set hours_worked = tt_records | sum(attribute='hours_worked') | round(2, 'common') %} {{ hours_worked}}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="text-right font-weight-bold">Grand Total ( Total Hours Worked * Billing Rate({{ sel_youth_partner.billing_rate }}))</td>
+                        <td class="text-right font-weight-bold">{{ hours_worked * sel_youth_partner.billing_rate }}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <th scope="col">Employee Name</th>
+                    <th scope="col">Day</th>
+                    <th scope="col">Attendance</th>
+                    <th scope="col">Hours Worked</th>
+                </thead>                    
+            </table>
+        </div>
+        {% endif %}        
+    </div>
+    <div class="modal fade" id="YouthPartnerModal" tabindex="-1" role="dialog" aria-labelledby="YouthPartnerModal"
+        aria-hidden="true">
+        <div class="modal-dialog pc-maxwidth-600" role="document">
+            <div class="modal-content">
+                <form action="youth_reports" method="get" id="youth_partner_form">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="YouthPartnerModal">Youth Partner Report</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table-responsive justify-content-center" style="display: grid;">
+                            <tr>
+                                <td>
+                                    <label for="youth_partner_id" style="vertical-align: middle;">Youth Partner</label>
+                                </td>
+                                <td>
+                                    <select id="youth_partner_id" name="youth_partner_id" class="form-control">
+                                        {% for youth_partner in youth_partners %}
+                                            <option value="{{ youth_partner.id }}">{{ youth_partner.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="date_range">From </label>
+                                </td>
+                                <td>
+                                    <input type="text" name="from_date" id="from_date" placeholder="From Date" class="form-control"/>
+                                </td>
+                                <td>
+                                    <label for="date_range" class="pr-1 pl-1">To</label>
+                                </td>
+                                <td>
+                                    <input type="text" name="to_date" id="to_date" class="form-control" placeholder="To Date"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="report_type" id="report_type" value="youth_partner"/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-grant">Generate Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="YouthEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="YouthEmployeeModal"
+        aria-hidden="true">
+        <div class="modal-dialog pc-maxwidth-600" role="document">
+            <div class="modal-content">
+                <form action="youth_reports" method="get" id="youth_employee_form">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="YouthPartnerModal">Youth Employee Report</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table-responsive justify-content-center" style="display: grid;">
+                            <tr>
+                                <td>
+                                    <label for="youth_partner_id" style="vertical-align: middle;">Youth Partner</label>
+                                </td>
+                                <td>
+                                    <select id="emp_youth_partner_id" name="emp_youth_partner_id" class="form-control">
+                                        {% for youth_partner in youth_partners %}
+                                            <option value="{{ youth_partner.id }}">{{ youth_partner.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="youth_employee_id" style="vertical-align: middle;">Youth Employee</label>
+                                </td>
+                                <td>
+                                    <select id="youth_employee_id" name="youth_employee_id" class="form-control">
+                                        {% for youth_employee in yhouth_employees %}
+                                            <option value="{{ youth_employee.id }}">{{ youth_employee.first_name }}, {{ youth_employee.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="date_range">From </label>
+                                </td>
+                                <td>
+                                    <input type="text" name="emp_from_date" id="emp_from_date" placeholder="From Date" class="form-control"/>
+                                </td>
+                                <td>
+                                    <label for="date_range" class="pr-1 pl-1">To</label>
+                                </td>
+                                <td>
+                                    <input type="text" name="emp_to_date" id="emp_to_date" class="form-control" placeholder="To Date"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="report_type" id="report_type" value="youth_employee"/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-grant">Generate Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    <script>
+    $(document).ready(function () {
+        $("#from_date").datetimepicker({
+            formatDate: 'm-d-Y',
+            format:'m-d-Y',
+            timepicker: false
+        });
+
+        $("#to_date").datetimepicker({
+            formatDate: 'm-d-Y',
+            format:'m-d-Y',
+            timepicker: false
+        });
+
+        $("#emp_from_date").datetimepicker({
+            formatDate: 'm-d-Y',
+            format:'m-d-Y',
+            timepicker: false
+        });
+
+        $("#emp_to_date").datetimepicker({
+            formatDate: 'm-d-Y',
+            format:'m-d-Y',
+            timepicker: false
+        });
+        
+        $("#from_date").on("change", function(){
+            from_date = new Date($("#from_date").datetimepicker("getValue"));
+            to_date = from_date
+            to_date.setDate(to_date.getDate()+4)
+            month = (to_date.getMonth()+1).toString().padStart(2,"0")
+            day = (to_date.getDate()).toString().padStart(2,"0")
+            var formattedDate = month+'-'+day+'-'+to_date.getFullYear()
+            $("#to_date").val(formattedDate)
+        });
+
+        $("#emp_from_date").on("change", function(){
+            from_date = new Date($("#emp_from_date").datetimepicker("getValue"));
+            to_date = from_date
+            to_date.setDate(to_date.getDate()+4)
+            month = (to_date.getMonth()+1).toString().padStart(2,"0")
+            day = (to_date.getDate()).toString().padStart(2,"0")
+            var formattedDate = month+'-'+day+'-'+to_date.getFullYear()
+            $("#emp_to_date").val(formattedDate)
+        });
+
+        $("#by_youth_partner").on("click",function(e){
+            $("#YouthPartnerModal").modal("show")
+        });
+
+        $("#by_youth_employee").on("click",function(e){
+            $("#YouthEmployeeModal").modal("show")
+        });
+
+        $('#YouthPartnerModal').on('hidden.bs.modal', function () {
+            $('#from_date').val("")
+            $('#to_date').val("")
+            $('#youth_partner_id').val("")
+        });
+
+        $('#YouthEmployeeModal').on('hidden.bs.modal', function () {
+            $('#emp_from_date').val("")
+            $('#emp_to_date').val("")
+            $('#emp_youth_partner_id').val("")
+            $('#youth_employee_id').val("")
+        });
+
+        $('#emp_youth_partner_id').on('change', function(e){
+            $.ajax({
+                url: "get_emp_by_partner",
+                type: "get",
+                data: {
+                    youth_partner_id: $("#emp_youth_partner_id").val()
+                },
+                success: function (response) {
+                    console.log(response);
+                    $("#youth_employee_id").find("option").remove();
+                    for(i=0; i<= response.length;i++){
+                        $("#youth_employee_id").append('<option value='+response[i].id+'>'+response[i].first_name+', '+response[i].last_name+'</option>')
+                    }
+                },
+                error: function (xhr) {
+                    console.log('there was an error')
+                    console.log(xhr);
+                },
+                complete: function (xhr, textStatus) {
+                    
+                }
+            });
+        });
+
+        $("#emp_youth_partner_id").trigger('change');
+    });
+    </script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Get CSV for a product</h1>
+    </div>
+
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-12 mb-8">
+
+            <!-- Project Card -->
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Enter details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="col-sm-12 pc-input-field">
+                        <label for="project_name">Select a product</label>
+                          <select name="productId" id="productId" class="form-control col-sm-5 col-xs-10">
+                            {% for product in data.data %}
+                              <option value="{{product.productId}}">{{product.product_name}}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <button id="btn-get-csv-{% if 'routific' in request.url %}routific{% else %}squarespace{% endif %}">Get CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

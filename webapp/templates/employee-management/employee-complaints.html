@@ -1,0 +1,149 @@
+<!-- templates/employee-complaints.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">My complaints</h3>
+        <div class="box">
+            <form action="/employee-management/employee-complaints" method="post">
+            <input type="hidden" name="action_name" value="exportComplaint">
+            <input type="submit" class="btn btn-outline-dark mt-1 pc-margin-bottom-30" value="Export Complaints">
+            </form>
+            <table class="table table-borderless" id="tbl-emp-cmpln">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Submitted By</th>
+                        <th>Submitted On</th>
+                        <th>Review Status</th>
+                        <th>View Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for complaint, user in emp_complaints %}
+                    <tr>
+                        <td>
+                            {{ complaint.title}}
+                        </td>
+                        <td>
+                            {{ complaint.description | truncate(50, True, '...')}}
+                        </td>
+                        <td>
+                            {{ user.name or 'Annonymously' }}
+                        </td>
+                        <td>
+                            {{ complaint.submitted_on.strftime('%Y-%m-%d')}}
+                        </td>
+                        <td>
+                            {% if complaint.is_reviewed %}
+                            <p class="text-success"> Reviewed </p>
+                            {% else %}
+                            <p class="text-danger"> Pending </p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a class="viewDetailCompl" data-id="{{complaint.id}}">
+                                <i class="fa fa-eye"></i>
+                            </a>
+                        </td>
+                        <input type="hidden" id="title{{complaint.id}}" value="{{complaint.title}}">
+                        <input type="hidden" id="description{{complaint.id}}" value="{{complaint.description}}">
+                        <input type="hidden" id="is_reviewed{{complaint.id}}" value="{{complaint.is_reviewed}}">
+                        <input type="hidden" id="user{{complaint.id}}" value="{{user.name}}">
+                        <input type="hidden" id="submitted_on{{complaint.id}}" value="{{complaint.submitted_on.strftime('%Y-%m-%d')}}">
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="viewComplaint" tabindex="-1" role="dialog" aria-labelledby="tableModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tableModalLabel">Submitted Complaint</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table-responsive" id="complaintDetail">
+                        <tr>
+                            <td class="font-weight-bold">Title: </td>
+                            <td class="title-field"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Description: </td>
+                            <td class="description-field"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Submitted By: </td>
+                            <td class="user-field"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Submitted On: </td>
+                            <td class="submitted_on-field"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <form action="/employee-management/employee-complaints" method="post">
+                        <input type="hidden" name="action_name" id="action_name" value="markReviewed"/>
+                        <input type="hidden" name="complaint_id" id="complaint-id" value="markReviewed"/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-mark-review">Mark reviewed</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#tbl-emp-cmpln').DataTable({
+                paging: false,
+                responsive: true,
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: 5 },
+                    { responsivePriority: 10001, targets: 1 },
+                ]
+            });
+            
+            $('body').on('click', '.viewDetailCompl', function() {
+                let id = $(this).attr('data-id');
+                let title = $('body').find('#title'+id).val();
+                let description = $('body').find('#description'+id).val();
+                let is_reviewed = $('body').find('#is_reviewed'+id).val();
+                let user = $('body').find('#user'+id).val();
+                let submitted_on = $('body').find('#submitted_on'+id).val();
+
+                $('#complaint-id').val(id);
+                $('#complaintDetail').find('.title-field').html(title);
+                $('#complaintDetail').find('.description-field').html(description);
+                $('#complaintDetail').find('.user-field').html(user);
+                $('#complaintDetail').find('.submitted_on-field').html(submitted_on);
+
+                console.log(is_reviewed)
+                if (is_reviewed == "True") {
+                    $('#btn-mark-review').hide()
+                } else {
+                    $('#btn-mark-review').show()
+                }
+
+                $("#viewComplaint").modal('show');
+            });
+        });
+    </script>
+
+{% endblock %}

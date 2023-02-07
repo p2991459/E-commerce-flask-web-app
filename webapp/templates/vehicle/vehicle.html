@@ -1,0 +1,920 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+    {{ messages[0] }}
+</div>
+{% endif %}
+{% endwith %}
+<div class="column is-8 is-offset-2">
+    <div class="mb-2">
+        <h3 class="title" style="display: inline-block;">My Vehicle</h3>
+        <button type="button" class="btn float-right btn-outline-dark mt-1 float-right pc-margin-bottom-30"
+            data-toggle="modal" data-target="#VehicleModal"><i class="fa fa-plus" aria-hidden="true"></i> Add
+            Vehicle</button>
+    </div>
+    <div class="box">
+    </div>
+</div>
+<!-- modal -->
+<div class="modal fade" id="VehicleModal" tabindex="-1" role="dialog" aria-labelledby="VehicleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog pc-maxwidth-600" role="document">
+        <div class="modal-content">
+            <form action="add_vehicle" id="form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="VehicleModalLabel">Add Vehicle</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- <table class="table-responsive"> -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Vehicle name</label>
+                                    <input type="text" required class="form-control" id="name" aria-describedby="emailHelp" placeholder="vehicle name">
+                                  </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Oil change date</label>
+                                    <input type="text" class="form-control" name="oil_change_date" id="oil_change_date" placeholder="MM/DD/YYYY">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Car registration date</label>
+                                    <input type="text" class="form-control" name="car_registration_date" id="car_registration_date" placeholder="MM/DD/YYYY">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">city sticker date</label>
+                                    <input type="text" class="form-control" name="city_sticker_date" id="city_sticker_date" placeholder="MM/DD/YYYY">
+                                  </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="reminder_email">reminder email</label>
+                                    <input type="email"  class="form-control" id="reminder_email" placeholder="reminder email" Required/>
+                                  </div>
+                            </div>
+                        </div>
+
+                    <!-- </table> -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="submit" id="save_vehicle">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- modal -->
+<div class="modal fade" id="EditModal" tabindex="-1" role="dialog" aria-labelledby="EditModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog pc-maxwidth-600" role="document">
+        <div class="modal-content">
+            <form action="add_vehicle" id="form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="EditModalLabel">Edit Vehicle</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- <table class="table-responsive"> -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">ID</label>
+                                    <input type="text" readonly class="form-control" id="car_vehicle_id" placeholder="vehicle id">
+                                  </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Vehicle name</label>
+                                    <input type="text" required class="form-control" id="vehicle_name" placeholder="vehicle name">
+                                  </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Oil change date</label>
+                                    <input type="text" class="form-control" name="vehicle_oil_change_date"  id="vehicle_oil_change_date" placeholder="MM/DD/YYYY">
+                                  </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Next Oil change date</label>
+                                    <input type="text" readonly  id="vehicle_next_oil_change_date" placeholder="YYYY-MM-DD" class ="form-control">
+                                  </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Car registration date</label>
+                                    <input type="text"  id="vehicle_car_registration_date" placeholder="YYYY-MM-DD" class ="form-control">
+                                  </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Car renewal date</label>
+                                    <input type="text" readonly id="vehicle_car_renewal_date" placeholder="YYYY-MM-DD" class ="form-control">
+                                  </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">city sticker date</label>
+                                    <input type="text"   id="vehicle_city_sticker_date" placeholder="YYYY-MM-DD" class ="form-control">
+                                  </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Next city sticker date</label>
+                                    <input type="text" readonly  id="vehicle_next_city_sticker_date" placeholder="YYYY-MM-DD" class ="form-control">
+                                  </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="reminder_email_edit">reminder email</label>
+                                    <input type="email"  class="form-control" id="reminder_email_edit" placeholder="reminder email" Required/>
+                                  </div>
+                            </div>
+                        </div>
+
+
+                    <!-- </table> -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="submit" id="update_vehicle">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
+<style>
+@media screen and (min-width: 769px) {
+    .pc-subtable {
+        margin-left: 0px;
+    }
+}
+    .modal-confirm {
+        color: #636363;
+        width: 400px;
+    }
+
+    .modal-confirm .modal-content {
+        padding: 20px;
+        border-radius: 5px;
+        border: none;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    .modal-confirm .modal-header {
+        border-bottom: none;
+        position: relative;
+    }
+
+    .modal-confirm h4 {
+        text-align: center;
+        font-size: 26px;
+        margin: 30px 0 -10px;
+    }
+
+    .modal-confirm .close {
+        position: absolute;
+        top: -5px;
+        right: -2px;
+    }
+
+    .modal-confirm .modal-body {
+        color: #999;
+    }
+
+    .modal-confirm .modal-footer {
+        border: none;
+        text-align: center;
+        border-radius: 5px;
+        font-size: 13px;
+        padding: 10px 15px 25px;
+    }
+
+    .modal-confirm .modal-footer a {
+        color: #999;
+    }
+
+    .modal-confirm .icon-box {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        z-index: 9;
+        text-align: center;
+        border: 3px solid #f15e5e;
+    }
+
+    .modal-confirm .icon-box i {
+        color: #f15e5e;
+        font-size: 46px;
+        display: inline-block;
+        margin-top: 13px;
+    }
+
+    .modal-confirm .btn,
+    .modal-confirm .btn:active {
+        color: #fff;
+        border-radius: 4px;
+        background: #60c7c1;
+        text-decoration: none;
+        transition: all 0.4s;
+        line-height: normal;
+        min-width: 120px;
+        border: none;
+        min-height: 40px;
+        border-radius: 3px;
+        margin: 0 5px;
+    }
+
+    .modal-confirm .btn-secondary {
+        background: #c1c1c1;
+    }
+
+    .modal-confirm .btn-secondary:hover,
+    .modal-confirm .btn-secondary:focus {
+        background: #a8a8a8;
+    }
+
+    .modal-confirm .btn-danger {
+        background: #f15e5e;
+    }
+
+    .modal-confirm .btn-danger:hover,
+    .modal-confirm .btn-danger:focus {
+        background: #ee3535;
+    }
+
+    .trigger-btn {
+        display: inline-block;
+        margin: 100px auto;
+    }
+</style>
+
+<!-- modal -->
+<div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="EditModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-confirm">
+        <div class="modal-content">
+            <div class="modal-header flex-column">
+                <div class="icon-box">
+                    <i class="material-icons">&#xE5CD;</i>
+                </div>
+                <h4 class="modal-title w-100">Are you sure?</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Do you really want to delete these records? This process cannot be undone.</p>
+                <input type="text" name="vehicle_id" hidden id="vehicle_id">
+
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" id="confirm_vehicle" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table id="vehicleTable" class="table table-responsive">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Oil change date</th>
+            <th>Next oil change date</th>
+            <th>Car registration date</th>
+            <th>Next car registration date</th>
+            <th>City sticker date</th>
+            <th>Next city sticker date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div style="display:none">
+    <table id="detailsTable" class="table display responsive table-bordered dataTable dtr-inline">
+        <thead>
+            <tr>
+                <th>Vehicle No.</th>
+                <th>Driver Name</th>
+                <th>Repair Detail</th>
+                <th>Repair Location</th>
+                <th>Repair Date</th>
+                <th>Repair Receipt</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- modal -->
+<div class="modal fade" id="VehicleRepairModal" tabindex="-1" role="dialog" aria-labelledby="VehicleRepairModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog pc-maxwidth-600" role="document">
+        <div class="modal-content">
+            <form  id="vehicle_repair_form" role="form" enctype="multipart/form-data" name="vehicle_repair_form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="VehicleRepairModalLabel">Add Vehicle Repair Records</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- <table class="table-responsive"> -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="vehicle_id">Vehicle name</label>
+{#                                    <input type="text" required class="form-control" id="vehicle_no"  placeholder="vehicle no">#}
+                                    <select id="vehicle_repair_vehicle_id" name="vehicle_id" style="display: block">
+                                        {% for v in vehicle_list %}
+                                        <option value="{{ v.id }}">{{ v.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                  </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="vehicle_no">Vehicle no</label>
+                                    <input type="text" required class="form-control" id="vehicle_no"  placeholder="vehicle no">
+                                  </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="driver_name">Driver Name</label>
+                                    <!-- <input type="dat" class="form-control" id="name" aria-describedby="emailHelp" placeholder="vehicle name"> -->
+                                    <input type="text" required class="form-control" id="driver_name" placeholder="driver name">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="repair_date">Repair Date</label>
+                                    <input type="text" required class="form-control" name="repair_date" id="repair_date" placeholder="MM/DD/YYYY">
+                                  </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="repair_location">Repair Location</label>
+                                    <input type="text" required class="form-control" id="repair_location" placeholder="vehicle repair location">
+                                  </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="repair_reciept">Repair Receipt </label>
+                                    <input type="file"  name="repair_reciept_file" accept="image/png, image/gif, image/jpeg, application/pdf"  class="form-control" id="repair_receipt_file" placeholder="upload repair receipt" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="repair_detail">Repair Detail</label>
+                                    <textarea class="form-control" id="repair_detail" placeholder="vehicle repair details." rows="3" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                    <!-- </table> -->
+                </div>
+                <div class="modal-footer">
+                    <!-- <input type="hidden" name="k_val_action" id="k_val_action" value="new" />
+                    <input type="hidden" name="id" id="id" value="" /> -->
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="submit" id="save_vehicle_repair" >Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <div class="modal fade" id="EditModal_vr" tabindex="-1" role="dialog" aria-labelledby="EditModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog pc-maxwidth-600" role="document">
+        <div class="modal-content">
+            <form action="add_vehicle" id="form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="EditModalLabel">Edit Vehicle Repair Record</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- <table class="table-responsive"> -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                    <label for="vehicle_id">Vehicle name</label>
+                                    <select id="vehicle_repair_vehicle_id_vr" name="vehicle_id" style="display: block">
+                                        {% for v in vehicle_list %}
+                                        <option value="{{ v.id }}">{{ v.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="vehicle_no">Vehicle no</label>
+                                    <input type="text" required class="form-control" id="vehicle_repair_no"  placeholder="vehicle no">
+                                  </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="driver_name">Driver Name</label>
+                                    <!-- <input type="dat" class="form-control" id="name" aria-describedby="emailHelp" placeholder="vehicle name"> -->
+                                    <input type="text" required class="form-control" id="vehicle_driver_name" placeholder="driver name">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="repair_date">Repair Date</label>
+                                    <input type="text" class="form-control" name="vehicle_repair_date" required id="vehicle_repair_date" placeholder="MM/DD/YYYY">
+                                  </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="repair_location">Repair Location</label>
+                                    <input type="text" required class="form-control" id="vehicle_repair_location" placeholder="vehicle repair location">
+                                  </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="repair_receipt">Update Receipt </label>
+                                    <input type="file"  accept="image/png, image/gif, image/jpeg, application/pdf"  name="updateReceipt" required class="form-control" id="updateReceipt" placeholder="upload repair receipt">
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="repair_detail">Repair Detail</label>
+                                    <textarea class="form-control" id="vehicle_repair_detail" placeholder="vehicle repair details." rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="text" hidden= required class="form-control" id="vehicle_repair_id">
+
+                    <!-- </table> -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="submit" id="update_vehicle_repair">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+    <!-- modal -->
+<div class="modal fade" id="DeleteModal_vr" tabindex="-1" role="dialog"
+    aria-hidden="true">
+    <div class="modal-dialog modal-confirm">
+        <div class="modal-content">
+            <div class="modal-header flex-column">
+                <div class="icon-box">
+                    <i class="material-icons">&#xE5CD;</i>
+                </div>
+                <h4 class="modal-title w-100">Are you sure?</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Do you really want to delete these records? This process cannot be undone.</p>
+                <input type="text" name="vehicle_receipt_id" hidden id="vehicle_receipt_id">
+
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" id="confirm_vehicle_receipt" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function fnFormatDetails(table_id, html) {
+    var sOut = "<table id=\"vehicleTable_" + table_id + "\" class=\"pc-subtable table display responsive table-bordered dataTable dtr-inline\">";
+    sOut += html;
+    sOut += "</table>";
+    return sOut;
+}
+
+var newRowData = [] ;
+{% for vehicle in vehicle_list %}
+    var repair_details = [];
+    {% for vehicle_repair in vehicle.vehicle_repairs %}
+        repair_details.push({
+    vehicle_no: "{{ vehicle_repair.vehicle_no }}",
+    driver_name: "{{ vehicle_repair.driver_name }}",
+    repair_detail: "{{ vehicle_repair.repair_detail }}",
+    repair_location: "{{ vehicle_repair.repair_location }}",
+    repair_date: "{{ vehicle_repair.repair_date }}",
+    repair_receipt: {% if vehicle_repair.repair_receipt and 'pdf' not in vehicle_repair.repair_receipt %}"<a href=\"{{site_url}}/repair_receipt/{{vehicle_repair.repair_receipt}}\" target=\"_new\"><image src=\"{{site_url}}/repair_receipt/{{vehicle_repair.repair_receipt}}\" style=\"border-radius: 50%;\" width=\"50\" height=\"50\"></image></a>"{% elif vehicle_repair.repair_receipt and 'pdf' in vehicle_repair.repair_receipt %} "<a href=\"{{site_url}}/repair_receipt/{{vehicle_repair.repair_receipt}}\" target=\"_new\">PDF</a>" {% else %}""{% endif %},
+    reminder_email: "{{ vehicle.reminder_email }}",
+    updated_at: "{{ vehicle_repair.updated_at }}",
+    action: "<a href=\"#\" data-id={{vehicle_repair.id}} id=\"edit_vehicle_repair\">✎ </a>&nbsp;&nbsp;&nbsp;<a href=\"\" data-id={{vehicle_repair.id}}  id=\"delete_receipt\">x</a>"
+});
+{% endfor %}
+
+    newRowData.push({
+            id: "{{ vehicle.id }}",
+            name: "{{ vehicle.name }}",
+            email: "{{ vehicle.reminder_email }}",
+            oil_change_date: "{{ vehicle.oil_change_date or '' }}",
+            next_oil_change_date: "{{ vehicle.next_oil_change_date or '' }}",
+            car_registration_date: "{{ vehicle.car_registration_date or '' }}",
+            next_car_registration_date: "{{ vehicle.car_renewal_date or '' }}",
+            city_sticker_date: "{{ vehicle.city_sticker_date or '' }}",
+            next_city_sticker_date: "{{ vehicle.next_city_sticker_date }}",
+            action:  "<a href=\"#\" data-id={{vehicle.id}} id=\"add_vehicle_repair\" data-toggle=\"modal\" data-target=\"#VehicleRepairModal\">&#128665; </a>&nbsp;&nbsp;&nbsp;<a href=\"#\" data-id={{vehicle.id}} id=\"edit_vehicle\">✎ </a>&nbsp;&nbsp;&nbsp;<a href=\"\" data-id={{vehicle.id}}  id=\"delete_vehicle\">x</a>",
+            details: repair_details
+    });
+{% endfor %}
+
+////////////////////////////////////////////////////////////
+
+var iTableCounter = 1;
+    var oTable;
+    var oInnerTable;
+    var detailsTableHtml;
+
+    //Run On HTML Build
+    $(document).ready(function () {
+
+        // you would probably be using templates here
+        detailsTableHtml = $("#detailsTable").html();
+
+        //Insert a 'details' column to the table
+        var nCloneTh = document.createElement('th');
+        var nCloneTd = document.createElement('td');
+        nCloneTd.innerHTML = '<img src="{{site_url}}/img/SD7Dz.png">';
+        nCloneTd.className = "center";
+
+        jQuery('#vehicleTable thead tr').each(function () {
+            this.insertBefore(nCloneTh, this.childNodes[0]);
+        });
+
+        jQuery('#vehicleTable tbody tr').each(function () {
+            this.insertBefore(nCloneTd.cloneNode(true), this.childNodes[0]);
+        });
+
+        var oTable = jQuery('#vehicleTable').dataTable({
+            "bJQueryUI": true,
+            "aaData": newRowData,
+            "bPaginate": false,
+            "aoColumns": [
+                {
+                   "mDataProp": null,
+                   "sClass": "control center",
+                   "sDefaultContent": '<img src="http://i.imgur.com/SD7Dz.png">'
+                },
+                { "mDataProp": "id" },
+                { "mDataProp": "name" },
+                { "mDataProp": "email" },
+                { "mDataProp": "oil_change_date" },
+                { "mDataProp": "next_oil_change_date" },
+                { "mDataProp": "car_registration_date" },
+                { "mDataProp": "next_car_registration_date" },
+                { "mDataProp": "city_sticker_date" },
+                { "mDataProp": "next_city_sticker_date" },
+                { "mDataProp": "action" },
+            ],
+            "oLanguage": {
+			    "sInfo": "_TOTAL_ entries"
+			},
+            "aaSorting": [[1, 'asc']]
+        });
+
+        /* Add event listener for opening and closing details
+        * Note that the indicator for showing which row is open is not controlled by DataTables,
+        * rather it is done here
+        */
+        jQuery('#vehicleTable tbody td').on('click', 'img', function () {
+            var nTr = jQuery(this).parents('tr')[0];
+            var nTds = this;
+
+            if (oTable.fnIsOpen(nTr)) {
+                /* This row is already open - close it */
+                this.src = "http://i.imgur.com/SD7Dz.png";
+                oTable.fnClose(nTr);
+            }
+            else {
+                /* Open this row */
+                var rowIndex = oTable.fnGetPosition( jQuery(nTds).closest('tr')[0] );
+	            var detailsRowData = newRowData[rowIndex].details;
+
+                this.src = "{{ site_url }}/img/d4ICC.png";
+                oTable.fnOpen(nTr, fnFormatDetails(iTableCounter, detailsTableHtml), 'details');
+                oInnerTable = jQuery("#vehicleTable_" + iTableCounter).dataTable({
+                    "bJQueryUI": true,
+                    "bFilter": false,
+                    "aaData": detailsRowData,
+                    "bSort" : true, // disables sorting
+                    "aoColumns": [
+	                { "mDataProp": "vehicle_no" },
+	                { "mDataProp": "driver_name" },
+	                { "mDataProp": "repair_detail" },
+	                { "mDataProp": "repair_location" },
+	                { "mDataProp": "repair_date" },
+	                { "mDataProp": "repair_receipt" },
+	                { "mDataProp": "action" },
+	            ],
+                    "bPaginate": false,
+                    "oLanguage": {
+						"sInfo": "_TOTAL_ entries"
+			        },
+                });
+                iTableCounter = iTableCounter + 1;
+            }
+        });
+
+
+    });
+</script>
+
+
+<script>
+
+    
+    $(document).ready(function (e) {
+        $( "#oil_change_date" ).datepicker();
+        $( "#vehicle_oil_change_date" ).datepicker();
+        $( "#car_registration_date" ).datepicker();
+        $( "#vehicle_car_registration_date" ).datepicker();
+        $( "#city_sticker_date" ).datepicker();
+        $( "#vehicle_city_sticker_date" ).datepicker();
+        $(document).on('click', '#save_vehicle', function (e) {
+            e.preventDefault();
+            var formData = {
+                "name":$("#name").val(),
+                "city_sticker_date":$("#city_sticker_date").val(),
+                "oil_change_date":$("#oil_change_date").val(),
+                "car_registration_date":$("#car_registration_date").val(),
+                "reminder_email":$("#reminder_email").val()
+            }
+            console.log(formData)
+            $.ajax({
+                type:"POST",
+                url:"add_vehicle",
+                data:JSON.stringify(formData),
+                contentType: "application/json; charset=utf-8",
+                traditional: true,
+                dataType: "json",
+                encode: true,
+                success: function (data) {
+                    console.log(data)
+                    $('.modal').each(function(){
+                    $(this).modal('hide');
+                    location.reload(true);
+                });
+                },
+                error: function (ex) {
+                    alert(ex);
+                }
+            })
+        })
+
+        $(document).on('click','#edit_vehicle',function(e){
+            e.preventDefault()
+            $.ajax({
+                type:'GET',
+                url:"get_vehicle"+ '/' + $(this).attr('data-id'),
+                contentType: "application/json; charset=utf-8",
+                traditional: true,
+                dataType: "json",
+                encode: true,
+                success: function (data) {
+                    console.log(data['data']['oil_change_date'],"")
+                    document.getElementById("car_vehicle_id").value = data['data']['id'];
+                    document.getElementById("vehicle_name").value = data['data']['name'];
+                    document.getElementById("reminder_email_edit").value = data['data']['reminder_email'];
+                    document.getElementById("vehicle_oil_change_date").value = data['data']['oil_change_date'];
+                    document.getElementById("vehicle_next_oil_change_date").value = data['data']['next_oil_change_date'];
+                    document.getElementById("vehicle_car_registration_date").value = data['data']['car_registration_date'];
+                    document.getElementById("vehicle_car_renewal_date").value = data['data']['car_renewal_date'];
+                    document.getElementById("vehicle_city_sticker_date").value = data['data']['city_sticker_date'];
+                    document.getElementById("vehicle_next_city_sticker_date").value = data['data']['next_city_sticker_date'];
+                    $("#EditModal").modal('show'); 
+                },
+                error: function (ex) {
+                    alert(ex);
+                }
+                
+            }) 
+        })
+
+
+        $(document).on('click', '#update_vehicle', function (e) {
+            e.preventDefault()
+            var formData = {
+                "name":$("#vehicle_name").val(),
+                "oil_change_date":$("#vehicle_oil_change_date").val(),
+                "car_registration_date":$("#vehicle_car_registration_date").val(),
+                "city_sticker_date":$("#vehicle_city_sticker_date").val(),
+                "reminder_email":$("#reminder_email_edit").val()
+            }
+            console.log(formData)
+            $.ajax({
+                type:"PUT",
+                url:"update_vehicle"+'/' + $("#car_vehicle_id").val(),
+                data:JSON.stringify(formData),
+                contentType: "application/json; charset=utf-8",
+                traditional: true,
+                dataType: "json",
+                encode: true,
+                success: function (data) {
+                    console.log(data)
+                    $('#EditModal').modal('hide')
+                    location.reload(true);
+                },
+                error: function (ex) {
+                    alert(ex);
+                }
+            })
+        })
+    
+
+        $(document).on('click', '#delete_vehicle', function (e) {
+            document.getElementById("vehicle_id").value = $(this).attr('data-id')
+            $("#DeleteModal").modal('show'); 
+            e.preventDefault()
+
+
+        })
+
+        $(document).on('click', '#confirm_vehicle', function (e) {
+            e.preventDefault()
+            $.ajax({
+                type:"DELETE",
+                url:"delete_vehicle"+'/' + $("#vehicle_id").val(),
+                contentType: "application/json; charset=utf-8",
+                traditional: true,
+                dataType: "json",
+                encode: true,
+                success: function (data) {
+                    location.reload();
+                    $('#DeleteModal').modal('hide')
+                }
+            })
+        })
+
+        // vehicle repair
+        $('#VehicleRepairModal').on('show.bs.modal', function (e) {
+            var vehicle_id = $(e.relatedTarget).attr('data-id');
+            $("#vehicle_repair_vehicle_id").val(vehicle_id);
+        });
+
+        $( "#repair_date" ).datepicker();
+        $( "#vehicle_repair_date" ).datepicker();
+        $(document).on('click', '#save_vehicle_repair', function (e) {
+            e.preventDefault();
+            pictureInput= document.getElementById("repair_receipt_file")
+            myFormData = new FormData();
+            myFormData.append('vehicle_id', $("#vehicle_repair_vehicle_id").val());
+            myFormData.append('vehicle_no', $("#vehicle_no").val());
+            myFormData.append('driver_name', $("#driver_name").val());
+            myFormData.append('repair_date', $("#repair_date").val());
+            myFormData.append('repair_location', $("#repair_location").val());
+            myFormData.append('repair_detail', $("#repair_detail").val());
+            myFormData.append('reminder_email',$("#reminder_email").val());
+            myFormData.append('repair_receipt', pictureInput.files[0]);
+
+            $.ajax({
+                type:"POST",
+                url:"vehicle_repair",
+                processData: false, // important
+                contentType: false, // important
+                dataType : 'json',
+                data: myFormData,
+                success: function (data) {
+                    console.log(data)
+                    $('.modal').each(function(){
+                    $(this).modal('hide');
+                    location.reload(true);
+                });
+                },
+                error: function (ex) {
+                    alert(ex);
+                }
+            })
+
+        })
+
+
+        $(document).on('click','#edit_vehicle_repair',function(e){
+            e.preventDefault()
+            $.ajax({
+                type:'GET',
+                url:"get_vehicle_repair"+ '/' + $(this).attr('data-id'),
+                contentType: "application/json; charset=utf-8",
+                traditional: true,
+                dataType: "json",
+                encode: true,
+                success: function (data) {
+                    console.log(data);
+                    document.getElementById("vehicle_repair_id").value = data['data']['id'];
+                    document.getElementById("vehicle_repair_vehicle_id_vr").value = data['data']['vehicle_id'];
+                    document.getElementById("vehicle_repair_no").value = data['data']['vehicle_no'];
+                    document.getElementById("vehicle_driver_name").value = data['data']['driver_name'];
+                    document.getElementById("vehicle_repair_date").value = data['data']['repair_date'];
+                    document.getElementById("vehicle_repair_location").value = data['data']['repair_location'];
+                    document.getElementById("vehicle_repair_detail").value = data['data']['repair_detail'];
+                    $("#EditModal_vr").modal('show');
+                },
+                error: function (ex) {
+                    alert(ex);
+                }
+
+            })
+        })
+
+
+        $(document).on('click', '#update_vehicle_repair', function (e) {
+            e.preventDefault()
+            myFormData = new FormData();
+            if( document.getElementById("updateReceipt").files.length != 0 ){
+                updateReceipt= document.getElementById("updateReceipt")
+                myFormData.append('repair_receipt', updateReceipt.files[0]);
+            }
+            myFormData.append('vehicle_name', $("#vehicle_repair_name").val());
+            myFormData.append('vehicle_id', $("#vehicle_repair_vehicle_id_vr").val());
+            myFormData.append('vehicle_no', $("#vehicle_repair_no").val());
+            myFormData.append('driver_name', $("#vehicle_driver_name").val());
+            myFormData.append('repair_date', $("#vehicle_repair_date").val());
+            myFormData.append('repair_location', $("#vehicle_repair_location").val());
+            myFormData.append('repair_detail', $("#vehicle_repair_detail").val());
+
+            $.ajax({
+                type:"PUT",
+                url:"repair_update_vehicle"+'/' +  $("#vehicle_repair_id").val(),
+                processData: false, // important
+                contentType: false, // important
+                dataType : 'json',
+                data: myFormData,
+                success: function (data) {
+                    console.log(data)
+                    $('#EditModal').modal('hide')
+                    location.reload(true);
+                },
+                error: function (ex) {
+                    alert(ex);
+                }
+            })
+        })
+
+        $(document).on('click', '#delete_receipt', function (e) {
+            document.getElementById("vehicle_receipt_id").value = $(this).attr('data-id')
+            $("#DeleteModal_vr").modal('show');
+            e.preventDefault()
+
+
+        })
+
+
+        $(document).on('click', '#confirm_vehicle_receipt', function (e) {
+            e.preventDefault()
+            $.ajax({
+                type:"DELETE",
+                url:"delete_vehicle_receipt"+'/' + $("#vehicle_receipt_id").val(),
+                contentType: "application/json; charset=utf-8",
+                traditional: true,
+                dataType: "json",
+                encode: true,
+                success: function (data) {
+                    location.reload();
+                    $('#DeleteModal').modal('hide')
+                }
+            })
+        })
+
+    })
+</script>
+{% endblock %}

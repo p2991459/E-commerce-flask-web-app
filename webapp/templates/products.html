@@ -1,0 +1,31 @@
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Products</h1>
+    </div>
+
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-12 mb-8">
+
+            <!-- Project Card -->
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">List of active products in Squarespace</h6>
+                </div>
+                <div class="card-body">
+                    <div class="col-sm-12 pc-input-field">
+                        <ol>
+                            {% for product in data.data %}
+                              <li>{{product.product_name}}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                    <button id="refresh-product-list">Refresh</button><i class="-info">Fetches products from SquareSpace</i>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

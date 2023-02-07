@@ -1,0 +1,271 @@
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-success">
+        {{ messages[0] }}
+    </div>
+{% endif %}
+{% endwith %}
+
+<div class="">
+    <!-- Project Card -->
+    <div class="card shadow mb-8">
+        <div class="card-header py-6">
+            <h6 class="m-0 font-weight-bold text-primary">Outreach Contacts</h6>
+        </div>
+        <div class="card-body">
+            <a class="btn mb-3 btn-dark {%  if 'show=all' in request.url %}active{% endif %}" href="/presentations/outreach_contacts?show=all">Show All</a>
+            <a class="btn mb-3 mr-2 btn-dark {%  if 'show=archived' in request.url %}active{% endif %}" href="/presentations/outreach_contacts?show=archived">Show archived</a>
+            <button type="button" class="btn btn-success mb-3 float-right" id="btn_add_outreach_contact">Add Outreach Contact</button>
+            <table class="table table-responsive table-bordered" id="outreach_contact_table" style="width: 100%;">
+                <thead>
+                    <tr class="white_header_class">
+                        <th>Id</th>
+                        <th scope="col">Outreach Type Key</th>
+                        <th scope="col">Outreach Type</th>
+                        <th scope="col">Organization</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">University</th>
+                        <th scope="col">Contact Person</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">E-Mail </th>
+                        <th scope="col">Phone </th>
+                        <th scope="col">Summary</th>
+                        <th scope="col">Collaboration Idea</th>
+                        <th scope="col">Event</th>
+                        <th scope="col">Notes</th>
+                        <th scope="col">Follow Up</th>
+                        <th scope="col">Actions </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for orc in outreach_contacts %}
+                        <tr>
+                            <td>{{ orc.outreach_contact_id }}</td>
+                            <td>{{ orc.outreach_type }}</td>
+                            {% if orc.outreach_type == 'YOUTH' %}
+                            <td>Youth</td>
+                            {% elif orc.outreach_type == 'COMMUNITY' %}
+                            <td>Community/Anti-Violance</td>
+                            {% elif orc.outreach_type == 'FAITH_ORG' %}
+                            <td>Faith Orgs</td>
+                            {% elif orc.outreach_type == 'AG_ECO_ORG' %}
+                            <td>Ag/Eco Org</td>
+                            {% elif orc.outreach_type == 'UNIVERSITY' %}
+                            <td>University/Schools</td>
+                            {% elif orc.outreach_type == 'BUSINESS' %}
+                            <td>Business Connection</td>
+                            {% endif %}              
+                            <td>{{ orc.org }}</td>
+                            <td>{{ orc.desc }}</td>
+                            <td>{{ orc.school_uni_name }}</td>
+                            <td>{{ orc.contact }}</td>
+                            <td>{{ orc.outreach_date }}</td>
+                            <td>{{ orc.email }}</td>
+                            <td>{{ orc.phone }}</td>
+                            <td>{{ orc.summary }}</td>
+                            <td>{{ orc.collab_idea }}</td>
+                            <td>{{ orc.event }}</td>
+                            <td>{{ orc.notes  }}</td>
+                            <td>{{ orc.follow_up }}</td>
+                            <td>
+                                <a class="edit" href="#" data-id="{{ orc.outreach_contact_id }}" data-handled_by="{{ orc.outreach_contact_id }}" >✎ </a>&nbsp;
+                                {% if orc.archived != 1 %}<a href="/presentations/outreach_contacts?edit=outreach_contact&id={{ orc.outreach_contact_id }}&archive=true" onclick="return confirm('Are you sure to archive outreach contact {{ orc.outreach_contact_id }}?')">📁</a>&nbsp;{% endif %}
+                                <a class="delete" href="#" data-id="{{ orc.outreach_contact_id }}" data-handled_by="{{ orc.outreach_contact_id }}">x</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="outreachContactModal" tabindex="-1" role="dialog" aria-labelledby="tableModalOutreachContact"
+         aria-hidden="true">
+    <div class="modal-dialog pc-maxwidth-600" role="document">
+        <div class="modal-content">
+            <form action="/presentations/outreach_contacts" method="post" id="frm_outreach_contact">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tableModalLabelOutreachContact">Outreach Contacts</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <label for="org" class="col-3">Organization</label>
+                        <select id="outreach_type" name="outreach_type" class="form-control col-8" required>
+                            <option value="YOUTH">Youth</option>
+                            <option value="COMMUNITY">Community/Anti-Violance</option>
+                            <option value="FAITH_ORG">Faith Orgs</option>
+                            <option value="AG_ECO_ORG">Ag/Eco Org</option>
+                            <option value="UNIVERSITY">University/Schools</option>
+                            <option value="BUSINESS">Business Connection</option>
+                        </select>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="org" class="col-3">Organization</label>
+                        <input type="text" name="org" id="org" value="" required class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="desc" class="col-3">Description</label>
+                        <textarea name="desc" id="desc" value="" class="form-control col-8" rows="5" cols="80"></textarea>
+                    </div>
+                    <div class="row mb-2" id="university_field">
+                        <label for="school_uni_name" class="col-3">University:</label>
+                        <input type="text" name="school_uni_name" id="school_uni_name" value="" class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="contact" class="col-3">Contact Person:</label>
+                        <input type="text" name="contact" id="contact" value="" class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="outreach_date" class="col-3">Date:</label>
+                        <input type="text" name="outreach_date" id="outreach_date" value="" class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="email" class="col-3">Email:</label>
+                        <input type="text" name="email" id="email" value="" class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="phone" class="col-3">Phone:</label>
+                        <input type="text" name="phone" id="phone" value="" class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="summary" class="col-3">Summary:</label>
+                        <input type="text" name="summary" id="summary" value="" class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2" id="collab_idea_field">
+                        <label for="collab_idea" class="col-3">Collab. Idea:</label>
+                        <input type="text" name="collab_idea" id="collab_idea" value="" class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2" id="event_field">
+                        <label for="event" class="col-3">Event:</label>
+                        <input type="text" name="event" id="event" value="" class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="notes" class="col-3">Notes:</label>
+                        <input type="text" name="notes" id="notes" class="form-control col-8"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="follow_up" class="col-3">Follow Up:</label>
+                        <textarea name="follow_up" id="follow_up" value="" class="form-control col-8" rows="5" cols="80"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="id" id="id"/>
+                    <input type="hidden" name="action" id="action" value="new"/>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btn-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function() {
+        $("#btn_add_outreach_contact").on('click', function(){
+            $("#outreachContactModal").modal('show');
+        });
+        $('#outreachContactModal').on('hidden.bs.modal', function (e) {
+            $("#frm_outreach_contact").trigger('reset');
+        });
+        $("#collab_idea_field").hide()
+        $("#event_field").hide()
+        $("#university_field").hide()
+        $("#outreach_type").on("change", function(){
+            //Outreach Typpe Community
+            if($("#outreach_type").val() == "COMMUNITY"){
+                $("#collab_idea_field").show();
+                $("#event_field").show()
+            }else{
+                $("#collab_idea_field").hide();
+                $("#event_field").hide()
+            }
+            //Outreach Type Schools/University            
+            if($("#outreach_type").val() == "UNIVERSITY"){
+                $("#university_field").show()
+            }else{
+                $("#university_field").hide()
+            }
+        });
+        let orc_table = $('#outreach_contact_table').DataTable(
+            {
+                paging: false,
+                columnDefs: [
+                    {
+                        targets: [0,1],
+                        visible: false,
+                        searchable: false
+                    }
+                ],
+                order:[[1,'asc']]
+            });
+        $('#outreach_contact_table tbody').on('click', 'td', function (e) {
+            row = orc_table.row(this)
+            var data = row.data();
+            if (data === undefined) {
+                // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+                var hiddenNode = $(this.parentNode).prev()[0].children[0];
+                data = yp_table.row(hiddenNode).data();
+            }
+            if (e.target.classList.contains('delete')) {
+                id = e.target.dataset.id
+                if(confirm("Are you sure to delete " + data[0] + "?")) {
+                    $.ajax({
+                        url: "/presentations/outreach_contacts",
+                        type: "post",
+                        data: {
+                            action: "delete",
+                            id: id
+                        },
+                        success: function (response) {
+                            console.log(response);
+                            row.remove().draw()
+                            alert("Outreach Contact "+ data[0] +" deleted successfully.");
+                        },
+                        error: function (xhr) {
+                            console.log('there was an error')
+                            console.log(xhr);
+                        },
+                        complete: function (xhr, textStatus) {
+                            console.log(textStatus);
+                        }
+                    });
+                }
+                return true
+            }
+            if (e.target.classList.contains('edit')) {
+                $("#id").val(data[0])
+                $("#outreach_type").val(data[1]).change()
+                $("#org").val(data[3])
+                $("#desc").val(data[4])
+                $("#school_uni_name").val(data[5])
+                $("#contact").val(data[6])
+                $("#outreach_date").val(data[7])
+                $("#email").val(data[8])
+                $("#phone").val(data[9])
+                $("#summary").val(data[10])
+                $("#collab_idea").val(data[11])
+                $("#event").val(data[12])
+                $("#notes").val(data[13])
+                $("#follow_up").val(data[14])
+                $("#tableModalLabelOutreachContact").html("Edit Outreach contact");
+                $("#outreachContactModal").modal('show');
+                return false;
+            }
+        });
+
+        $("#outreach_date").datetimepicker({
+            defaultDate: new Date(),
+            formatDate: 'd-m-Y',
+            format:'d-m-Y',
+            timepicker: false
+        });
+    });
+    
+</script>
+{% endblock %}

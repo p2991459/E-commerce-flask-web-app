@@ -1,0 +1,195 @@
+{% extends "actual_base.html" %} {% block actual_content %}
+
+<!-- Content Column -->
+<div class="">
+    <!-- Project Card -->
+    <div class="card shadow mb-8">
+        <div class="card-header py-6">
+            <h6 class="m-0 font-weight-bold text-primary">Flower Properties</h6>
+        </div>
+        <div class="card-body">
+            <button type="button" class="btn btn-success mb-3" id="add_new_flower_properties">Add new Flower Property</button>
+            <table class="table table-responsive table-bordered" id="flower_properties_table" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th class="text-nowrap">Name</th>
+                        <th class="text-nowrap">Source</th>
+                        <th class="text-nowrap">Storage Type</th>
+                        <th class="text-nowrap">Flower Type</th>
+                        <th class="text-nowrap">Time To Expire</th>
+                        <th class="text-nowrap">In Storage</th>
+                        <th class="text-nowrap">Arrangement Types Recipe 1</th>
+                        <th class="text-nowrap">Arrangement Types Recipe 2</th>
+                        <th class="text-nowrap">Arrangement Types Recipe 3</th>
+                        <th class="text-nowrap">Arrangement Types Recipe 4</th>
+                        <th class="text-nowrap">Arrangement Types Recipe 5</th>
+                        <th class="text-nowrap">Arrangement Types Recipe 6</th>
+                        <th class="text-nowrap">Arrangement Types Recipe 7</th>
+                        <th class="text-nowrap">Arrangement Types Recipe 8</th>
+                        <th class="text-nowrap">Arrangement Types Recipe 9</th>
+                        <th class="text-nowrap">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for flower_prop in flower_properties %}
+                        <tr>
+                            <td>{{ flower_prop.id }}</td>
+                            <td>{{ flower_prop.name }}</td>
+                            <td>{{ flower_prop.source }}</td>
+                            <td>{{ flower_prop.storage_type }}</td>
+                            <td>{{ flower_prop.flower_type }}</td>
+                            <td>{{ flower_prop.time_to_expire }}</td>
+                            <td>{{ flower_prop.in_storage }}</td>
+                            <td>{{ flower_prop.arr_type_recipe1 }}</td>
+                            <td>{{ flower_prop.arr_type_recipe2 }}</td>
+                            <td>{{ flower_prop.arr_type_recipe3 }}</td>
+                            <td>{{ flower_prop.arr_type_recipe4 }}</td>
+                            <td>{{ flower_prop.arr_type_recipe5 }}</td>
+                            <td>{{ flower_prop.arr_type_recipe6 }}</td>
+                            <td>{{ flower_prop.arr_type_recipe7 }}</td>
+                            <td>{{ flower_prop.arr_type_recipe8 }}</td>
+                            <td>{{ flower_prop.arr_type_recipe9 }}</td>
+                            <td><a class="edit" href="#"
+                                data-id="{{ flower_prop.id }}" data-handled_by="{{ flower_prop.id }}" >✎ </a>&nbsp;
+                             <a class="delete" href="#"
+                                data-id="{{ flower_prop.id }}" data-handled_by="{{ flower_prop.id }}">x</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="flowerPropertiesModal" tabindex="-1" role="dialog" aria-labelledby="tableModalLabelYouthPartner"
+         aria-hidden="true">
+    <div class="modal-dialog pc-maxwidth-600" role="document">
+        <div class="modal-content">
+            <form action="flower_properties" method="post" id="flower_properties_form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tableModalLabelFlowerProperties">Flower Properties</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <label for="name" class="col-4">Name:</label>
+                        <input type="text" name="name" id="name" value="" required class="form-control col-7"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="source" class="col-4">Source:</label>
+                        <select id="source" name="source" class="form-control col-7" multiple>
+                            <option value="Our Farms">Our Farms</option>
+                            <option value="Kennicott">Kennicott</option>
+                            <option value="Foraged">Foraged</option>
+                            </select>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="storage_type" class="col-4">Storage Type:</label>
+                        <select id="storage_type" name="storage_type" class="form-control col-7">
+                            <option value="Cold Storage">Cold Storage</option>
+                            <option value="Warm Storage">Warm Storage</option>
+                        </select>                    
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower_type" class="col-4">Flower Type:</label>
+                        <select id="flower_type" name="flower_type" class="form-control col-7" multiple>
+                            <option value="Focal">Focal</option>
+                            <option value="Structure">Structure</option>
+                            <option value="Color Pop">Color Pop</option>
+                            <option value="Spike">Spike</option>
+                            <option value="Greenery">Greenery</option>
+                        </select>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="time_to_expire" class="col-4">Time To Expire:</label>
+                        <input type="text" name="time_to_expire" id="time_to_expire" required class="form-control col-7"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="id" id="id"/>
+                    <input type="hidden" name="action" id="action" value="new"/>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btn-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $("#add_new_flower_properties").on('click', function(){
+        $("#flowerPropertiesModal").modal('show');
+    });
+    $('#flowerPropertiesModal').on('hidden.bs.modal', function (e) {
+        $("#flower_properties_form").trigger('reset');
+    });
+    let fp_table = $('#flower_properties_table').DataTable(
+        {
+            paging: false,
+            columnDefs: [
+                {
+                    targets: [0],
+                    visible: false,
+                    searchable: false
+                }
+            ],
+            order:[[1,'asc']]
+        });
+    $('#flower_properties_table tbody').on('click', 'td', function (e) {
+        row = fp_table.row(this)
+        var data = row.data();
+        if (data === undefined) {
+            // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+            var hiddenNode = $(this.parentNode).prev()[0].children[0];
+            data = yp_table.row(hiddenNode).data();
+        }
+        if (e.target.classList.contains('delete')) {
+            id = e.target.dataset.id
+            if(confirm("Are you sure to delete " + data[1] + "?")) {
+                $.ajax({
+                    url: "flower_properties",
+                    type: "post",
+                    data: {
+                        action: "delete",
+                        id: id
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        row.remove().draw()
+                        alert("Flower property "+ data[1] +" deleted successfully.");
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                    }
+                });
+            }
+            return true
+        }
+        if (e.target.classList.contains('edit')) {
+            $("#id").val(data[0])
+            $("#name").val(data[1])
+            $.each(data[2].split(","), function(i,e){
+                $("#source option[value='" + e + "']").prop("selected", true);
+            });
+            $("#storage_type").val(data[3]).change()
+            $.each(data[4].split(","), function(i,e){
+                $("#flower_type option[value='" + e + "']").prop("selected", true);
+            });
+            $("#time_to_expire").val(data[5])
+            $("#action").val("edit")
+            $("#tableModalLabelFlowerProperties").html("Edit flower property");
+            $("#flowerPropertiesModal").modal('show');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

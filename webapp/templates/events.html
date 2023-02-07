@@ -1,0 +1,391 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+<!-- ckeditor css -->
+<style>
+    #container {
+        width: 1000px;
+        margin: 20px auto;
+    }
+    .ck-editor__editable[role="textbox"] {
+        /* editing area */
+        min-height: 200px;
+    }
+    .ck-content .image {
+        /* block images */
+        max-width: 80%;
+        margin: 20px auto;
+    }
+</style>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-success">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <style>
+        .floral-product {
+            white-space: pre-wrap;
+        }
+    </style>
+    <a class="btn btn-dark {%  if 'show=archived' in request.url %}active{% endif %}" href="/events?show=archived">Show archived</a>
+    <a class="btn btn-dark {%  if 'show=all' in request.url %}active{% endif %}" href="/events?show=all">Show all</a>
+    <div style="height: 20px"></div>
+    {% if existing_events %}
+        <div class="column is-8 is-offset-2">
+            <h3 class="title">Existing events</h3>
+            <div class="">
+                    <table class="table display responsive table-responsive table-bordered" style="width: 100%;" id="events_table">
+                    
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Name</th>
+                          <th scope="col">Email</th>
+                          <th scope="col">Phone Number</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">Event type</th>
+                          <th scope="col">Floral product</th>
+                          <th scope="col">Flowers ordered</th>
+                          <th scope="col">Notes</th>
+                          <th scope="col">Colors</th>
+                          <th scope="col">Event location</th>
+                          <th scope="col">Delivery time</th>
+                          <th scope="col">Delivery Contact Information</th>
+                          <th scope="col">Invoice or Contract</th>
+                          <th scope="col">1st Half Paid</th>
+                          <th scope="col">Final Deposit Paid</th>
+                          <th scope="col">Total Price</th>
+                          <th scope="col">Completed (Y/N)</th>
+                          <th scope="col">Actions</th>
+                        </tr>
+                      </thead>
+                    <tbody>
+                      {% for ee in existing_events %}
+                            <tr>
+                              <td>{{ loop.index }}</td>
+                              <td>{{ ee.name }}</td>
+                              <td>{{ ee.email }}</td>
+                              <td>{{ ee.phone_number }}</td>
+                              <td data-sort="{{ ee.event_date | date_to_int }}">{{ ee.event_date }}</td>
+                              <td>{{ ee.event_type }}</td>
+                              <td class="floral-product">{{ ee.floral_product }}</td>
+                              <td class="floral-product">{{ ee.flowers_ordered | format_event_flower_ordered if ee.flowers_ordered else '' }}</td>
+                              <!-- image hyperlinks -->
+                              <td>{{ text_out or '' }}
+                                {% if ee.notes %}
+                                <!-- <a href="/image_display" target="_blank">text</a> -->
+                                <button id="{{ee.notes}}" type="button" class="btn btn-primary imageclass">
+                                    view
+                                </button>
+                                {% endif %}
+                              </td>
+                              <td>{{ ee.colors }}</td>
+                              <td>{{ ee.event_location }}</td>
+                              <td>{{ ee.delivery_time }}</td>
+                              <td>{{ ee.delivery_contact_info }}</td>
+                              <td>{% if ee.invoice_or_contract == 2%}Invoice{% elif ee.invoice_or_contract == 3 %}Contract{% endif %}</td>
+                              <td>{{ ee.contract_first }}</td>
+                              <td>{{ ee.second }}</td>
+                              <td>{{ ee.total_price }}</td>
+                              <td>{{ ee.completed }}</td>
+                                <td><a href="/events?edit=event&id={{ ee.event_id }}">✎ </a>&nbsp;
+                                    {% if ee.archived != 1 %}<a href="/events?edit=event&id={{ ee.event_id }}&archive=true" onclick="return confirm('Are you sure to archive event {{ ee.name }}?')">📁</a>&nbsp;{% endif %}
+                                    <a href="/events?edit=event&id={{ ee.event_id }}&delete=true" onclick="return confirm('Are you sure to delete event {{ ee.event_id }}?')">x</a></td>
+                            </tr>
+                      {% endfor %}</tbody>
+                        <tfoot>
+                        <tr class="white_header_class">
+                          <th>#</th>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Phone Number</th>
+                          <th>Date</th>
+                          <th>Event type</th>
+                          <th>Floral product</th>
+                          <th>Flowers ordered</th>
+                          <th>Notes</th>
+                          <th>Colors</th>
+                          <th>Event location</th>
+                          <th>Delivery time</th>
+                          <th>Delivery Contact Information</th>
+                          <th>Invoice or Contract</th>
+                          <th>Contract + 1st half pay date</th>
+                          <th>2nd half pay date</th>
+                          <th>Total Price</th>
+                          <th>Completed (Y/N)</th>
+                          <th>Actions</th>
+                        </tr>
+                      </tfoot>
+                    </table>
+            </div>
+        </div>
+    {% endif %}
+    <div class="column is-4 is-offset-4" style="margin-top: 35px">
+        <h3 class="title">{% if event_in_edit %}Edit{% else %}Add{% endif %} Event {% if event_in_edit %} <u>#{{ event_in_edit.event_id }}</u>{% endif %}</h3>
+        <div class="box">
+            <form method="POST" action="/events{% if event_in_edit %}?edit=event{% endif %}">
+                <div class="field">
+                    <div class="control">
+                        <label for="name">
+                            Name </label>
+                        <input class="input is-large" type="text"
+                                   id="name" name="name" placeholder="Event Name"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.name }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="email">
+                            Email </label>
+                        <input class="input is-large" type="text"
+                                   id="email" name="email" placeholder="Email"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.email }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="phone_number">
+                            Phone Number </label>
+                        <input class="input is-large" type="text"
+                                   id="phone_number" name="phone_number" placeholder="Phone Number"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.phone_number }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="event_date">
+                            Event Date </label>
+                        <input class="input is-large" type="text"
+                                   id="event_date" name="event_date" placeholder="Event Date"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.event_date }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="event_type">
+                            Event Type </label>
+                        <input class="input is-large" type="text"
+                                   id="event_type" name="event_type" placeholder="Event Type"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.event_type }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="floral_product">
+                            Floral Product </label>
+                        <textarea class="input is-large" type="text"
+                                   id="floral_product" name="floral_product" placeholder="Floral Product" rows="10" cols="80"
+                                  autofocus="">{% if event_in_edit %}{{event_in_edit.floral_product }}{% endif %}</textarea>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="flowers_ordered">Flowers Ordered </label>
+                        <input class="input is-large" type="text" id="flowers_ordered" name="flowers_ordered"
+                               placeholder="Flowers Ordered" autofocus=""
+                               value="{% if event_in_edit %}{{event_in_edit.flowers_ordered | format_event_flower_ordered if event_in_edit.flowers_ordered else ''}}{% endif %}" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="notes">
+                            Notes </label>
+                            <div id="container">
+                                <textarea class="input is-large" type="text"
+                                   id="editor" name="editor" placeholder="Notes" rows="10" cols="80"
+                                  autofocus="">{% if event_in_edit %}{{event_in_edit.notes or ''}}{% endif %}</textarea>        
+                            </div>
+                        
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="colors">
+                            Colors </label>
+                        <input class="input is-large" type="text"
+                                   id="colors" name="colors" placeholder="Colors"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.colors }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="event_location">
+                            Event Location </label>
+                        <input class="input is-large" type="text"
+                                   id="event_location" name="event_location" placeholder="Event Location"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.event_location }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="delivery_time"> Delivery Time </label>
+                        <input class="input is-large" type="text"
+                                   id="delivery_time" name="delivery_time" placeholder="Delivery Time"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.delivery_time }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="delivery_contact_info"> Delivery Contact Information </label>
+                        <input class="input is-large" type="text"
+                                   id="delivery_contact_info" name="delivery_contact_info" placeholder="Delivery Contact Information"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.delivery_contact_info }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="invoice_or_contract"> Invoice or Contract </label>
+                        <select name="invoice_or_contract">
+                            <option value="{{ invoice_or_contract.unknown_id }}" {% if not event_in_edit.invoice_or_contract or event_in_edit.invoice_or_contract == invoice_or_contract.unknown_id  %} selected {% endif %}> -- </option>
+                            <option value="{{ invoice_or_contract.invoice }}" {% if event_in_edit.invoice_or_contract == invoice_or_contract.invoice %} selected {% endif %}>Invoice</option>
+                            <option value="{{ invoice_or_contract.contract }}" {% if event_in_edit.invoice_or_contract == invoice_or_contract.contract %} selected {% endif %}>Contract</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="contract_first"> 1st Half Paid </label>
+                        <input class="input is-large" type="text"
+                                   id="contract_first" name="contract_first" placeholder="1st Half Paid"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.contract_first }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="second"> Final Deposit Paid </label>
+                        <input class="input is-large" type="text"
+                                   id="second" name="second" placeholder="Final Deposit Paid"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.second }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="total_price"> Total Price </label>
+                        <input class="input is-large" type="text"
+                                   id="total_price" name="total_price" placeholder="Total Price"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.total_price }}"{% endif %}>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        <label for="completed"> Completed </label>
+                        <input class="input is-large" type="text"
+                                   id="completed" name="completed" placeholder="Completed (Y/N)"
+                                   autofocus=""  {% if event_in_edit %}value="{{ event_in_edit.completed }}"{% endif %}>
+                    </div>
+                </div>
+
+            {% if event_in_edit %}
+                <input type="hidden" name="edit" value="event" />
+                <input type="hidden" name="id" value="{{ event_in_edit.event_id }}" />
+            {% else %}
+                <input type="hidden" name="new-event" value="add" />
+            {% endif %}
+                <button class="button is-block is-info is-large">
+                    Save
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+    .control label {
+        width: 100%;
+    }
+    .control {
+        margin-bottom: 20px;
+    }
+    </style>
+    <script>
+    $(document).ready(function() {
+        $("#events_table").DataTable(
+              {
+                order: [[4, "asc"], [ 0, "desc" ]],
+                paging: true,
+                pageLength: 100,
+                responsive: true , columnDefs: [
+                  { className: 'desktop', targets: '_all' },
+                  { className: 'mobile-l mobile-p', targets: [0,1,5,14] },
+                      {
+                          targets: '_all',
+                          createdCell: function (td, cellData, rowData, row, col) {
+                              $(td).css('padding', '10px')
+                          }
+                      }
+                ],
+                fixedColumns: { left: 2, right: 1 },
+              }
+        );
+        $("#events_table").doubleScroll();
+        $("#event_date").datepicker();
+        $("#second").datepicker();
+        $("#flowers_ordered").datepicker();
+        $("#contract_first").datepicker();
+
+        ClassicEditor.create(document.getElementById("editor"), {
+            toolbar: {
+                items: [
+                    'heading', '|',
+                    'bold', 'italic', 'strikethrough', 'underline', '|',
+                    'bulletedList', 'numberedList', '|',
+                    'outdent', 'indent', '|',
+                    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'highlight', '|',
+                    'alignment', '|',
+                    'link', 'insertImage', 'blockQuote', 'insertTable', '|', 'horizontalLine',
+                ],
+                shouldNotGroupWhenFull: true
+            },
+            image: {
+                styles:[
+                    { width: '100%' }
+                ]
+            },
+            simpleUpload:{
+                uploadUrl: "{{ SITE_URL }}/events/images",
+                
+            },
+            placeholder: 'Events Notes',
+            removePlugins: [
+                'CKBox', 'CKFinder', 'EasyImage', 'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
+                'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments', 'TrackChanges', 'TrackChangesData',
+                'RevisionHistory', 'Pagination', 'WProofreader', 'MathType'
+            ]
+        });
+    });
+    </script>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="modal_body">
+          ...
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+    $('.imageclass').on('click', function(ev) {
+    id = this.id
+    $('#modal_body').html('');
+    $('#modal_body').html(`${id}`);
+    $('#exampleModalCenter').modal('show');
+});
+
+</script>
+{% endblock %}

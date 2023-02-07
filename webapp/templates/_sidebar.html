@@ -1,0 +1,416 @@
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion toggled" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+                <div class="sidebar-brand-text mx-3">SSB Admin</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+
+            {% if current_user.is_admin %}
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item {% if site_url+'/' == request.url %}active{% endif %}">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span></a>
+            </li>
+            {% elif 'dashboard' in  all_permissions %}
+            <li class="nav-item {% if site_url+'/' == request.url %}active{% endif %}">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span></a>
+            </li>
+            {% endif %}
+
+            <!-- Code for employee side bar menus -->
+            {% if 'employee_section' in all_permissions %}
+            <li class="nav-item {% if site_url+'/' == request.url %}active{% endif %}">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span></a>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item {% if 'my-doc' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/emp/my-doc">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>My Documents</span></a>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item {% if 'training-videos' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/training-videos">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Training Videos</span></a>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item {% if 'my-ideas' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/emp/my-ideas">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>My Ideas</span></a>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item {% if 'my-submitted-complaints' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/emp/my-submitted-complaints">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Complaints</span></a>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item {% if '/vehicle_request' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/vehicle_request">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Vehicle Request</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+
+            <div class="sidebar-heading">
+                Interface
+            </div>
+            {% if current_user.is_admin %}
+
+            <li class="nav-item{% if 'custom_order' in request.url %} active{% endif %}">
+                <a class="nav-link{% if 'custom_order' in request.url %} active{% endif %}" href="/custom_order">
+                    <i class="fas fa-calendar"></i>
+                    <span>Custom order</span></a>
+            </li>
+            {% elif 'custom_order' in  all_permissions %}
+
+            <li class="nav-item{% if 'custom_order' in request.url %} active{% endif %}">
+                <a class="nav-link{% if 'custom_order' in request.url %} active{% endif %}" href="/custom_order">
+                    <i class="fas fa-calendar"></i>
+                    <span>Custom order</span></a>
+            </li>
+            {% endif %}
+
+
+            <!-- Nav Item - Pages Collapse Menu -->
+            {% if current_user.is_admin %}
+
+            <li class="nav-item">
+                <a class="nav-link {% if 'squarespace' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseTwo"
+                    aria-expanded="true" aria-controls="collapseTwo">
+                    <i class="fab fa-squarespace"></i>
+                    <span>Squarespace</span>
+                </a>
+                <div id="collapseTwo" class="collapse {% if 'squarespace' in request.url %}show{% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'products' in request.url %}active{% endif %}" href="/squarespace/products">Products</a>
+                        <a class="collapse-item {% if 'squarespace/get-csv' in request.url %}active{% endif %}" href="/squarespace/get-csv">Get CSV</a>
+                    </div>
+                </div>
+            </li>
+            {% elif 'squarespace' in  all_permissions %}
+
+            <li class="nav-item">
+                <a class="nav-link {% if 'squarespace' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseTwo"
+                    aria-expanded="true" aria-controls="collapseTwo">
+                    <i class="fab fa-squarespace"></i>
+                    <span>Squarespace</span>
+                </a>
+                <div id="collapseTwo" class="collapse {% if 'squarespace' in request.url %}show{% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'products' in request.url %}active{% endif %}" href="/squarespace/products">Products</a>
+                        <a class="collapse-item {% if 'squarespace/get-csv' in request.url %}active{% endif %}" href="/squarespace/get-csv">Get CSV</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+
+            {% if current_user.is_admin or 'routific' in  all_permissions %}
+            <!-- Nav Item - Utilities Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link {% if 'routific' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseUtilities"
+                    aria-expanded="true" aria-controls="collapseUtilities">
+                    <i class="fas fa-route"></i>
+                    <span>Routific</span>
+                </a>
+                <div id="collapseUtilities" class="collapse {% if 'routific' in request.url %}show{% endif %}" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'create-project' in request.url %}active{% endif %}" href="/routific/create-project">Create Project</a>
+                        <a class="collapse-item {% if 'update-project' in request.url %}active{% endif %}" href="/routific/update-project">Update Project</a>
+                        <a class="collapse-item {% if 'routific/get-csv' in request.url %}active{% endif %}" href="/routific/get-csv">Get CSV</a>
+                        <a class="collapse-item {% if 'routific/get-production-sheet' in request.url %}active{% endif %}" href="/routific/get-production-sheet">Get Production Sheet</a>
+                        <a class="collapse-item {% if 'routific/live-tracking' in request.url %}active{% endif %}" href="/routific/live-tracking">Show LIVE tracking</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+
+
+            {% if current_user.is_admin %}
+            <li class="nav-item {% if 'get-labels' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/get-labels">
+                    <i class="fas fa-fw fa-mail-bulk"></i>
+                    <span>Get labels / tags</span></a>
+            </li>
+            {% elif 'get_labels_tags' in  all_permissions %}
+            <li class="nav-item {% if 'get-labels' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/get-labels">
+                    <i class="fas fa-fw fa-mail-bulk"></i>
+                    <span>Get labels / tags</span></a>
+            </li>
+            {% endif %}
+
+
+            {% if current_user.is_admin %}
+            <li class="nav-item {% if 'planProject' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/planProject">
+                    <i class="fas fa-fw fa-lightbulb"></i>
+                    <span>Plan a project</span></a>
+            </li>
+            {% elif 'plan_a_project' in  all_permissions %}
+            <li class="nav-item {% if 'planProject' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/planProject">
+                    <i class="fas fa-fw fa-lightbulb"></i>
+                    <span>Plan a project</span></a>
+            </li>
+            {% endif %}
+
+            {% if current_user.is_admin or 'customer_lookup' in  all_permissions %}
+            <li class="nav-item {% if 'data' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/data">
+                    <i class="fas fa-fw fa-table"></i>
+                    <span>Customer Lookup</span></a>
+            </li>
+            {% endif %}
+
+
+            {% if current_user.is_admin or 'delivery_dates_zones' in  all_permissions%}
+            <li class="nav-item {% if 'delivery_dates' in request.url %} active{% endif %}">
+                <a class="nav-link" href="/delivery_dates">
+                    <i class="fas fa-fw fa-calendar-check"></i>
+                    <span>Delivery dates / zones</span></a>
+            </li>
+            {% endif %}
+
+            {% if current_user.is_admin or 'user_management' in  all_permissions %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'users' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseUsers"
+                    aria-expanded="true" aria-controls="collapseUsers">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>User Management</span>
+                </a>
+                <div id="collapseUsers" class="collapse {% if 'users' in request.url %}show{% endif %}" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'users_listing' in request.url %}active{% endif %}" href="/users/users_listing">Users</a>
+                        <a class="collapse-item {% if 'role_modules' in request.url %}active{% endif %}" href="/role/role_modules">Roles</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+
+            {% if current_user.is_admin or 'employee_management' in  all_permissions %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'employee-management' in request.url or 'training-videos' in request.url or '/vehicle_request' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseEmp"
+                    aria-expanded="true" aria-controls="collapseEmp">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Employee Management</span>
+                </a>
+                <div id="collapseEmp" class="collapse {% if 'employee-management' in request.url or 'training-videos' in request.url or '/vehicle_request' in request.url %}show{% endif %}" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'employee-list' in request.url %}active{% endif %}" href="/employee-management/employee-list">Employees</a>
+                        <a class="collapse-item {% if 'employment-docs' in request.url %}active{% endif %}" href="/employee-management/employment-docs">Employment Documents</a>
+                        <a class="collapse-item {% if 'training-videos' in request.url %}active{% endif %}" href="/training-videos">Training Videos</a>
+                        <a class="collapse-item {% if 'employee-ideas' in request.url %}active{% endif %}" href="/employee-management/employee-ideas">Employee Ideas</a>
+                        <a class="collapse-item {% if 'employee-complaints' in request.url %}active{% endif %}" href="/employee-management/employee-complaints">Complaints</a>
+                        <a class="collapse-item {% if '/vehicle_request' in request.url %}active{% endif %}" href="/vehicle_request">Vehicle Request</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+
+            {% if current_user.is_admin or 'drivers' in all_permissions %}
+            <li class="nav-item{% if 'driver-settings' in request.url %} active{% endif %}">
+                <a class="nav-link{% if 'driver-settings' in request.url %} active{% endif %}" href="/driver-settings">
+                    <i class="fas fa-drivers-license fa-table"></i>
+                    <span>Drivers</span></a>
+            </li>
+            {% endif %}
+
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+            {% if current_user.is_admin or 'events' in all_permissions %}
+            <li class="nav-item{% if '/events' in request.url %} active{% endif %}">
+                <a class="nav-link{% if '/events' in request.url %} active{% endif %}" href="/events">
+                    <i class="fas fa-campground"></i>
+                    <span>Events</span></a>
+            </li>
+            {% endif %}
+            
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+            {% if current_user.is_admin or 'master_calendar' in all_permissions %}
+            <li class="nav-item{% if '/master_calendar' in request.url %} active{% endif %}">
+                <a class="nav-link{% if '/master_calendar' in request.url %} active{% endif %}" href="/master_calendar">
+                    <i class="fas fa-fw fa-calendar-check"></i>
+                    <span>Master Calendar</span></a>
+            </li>
+            {% endif %}
+
+            <hr class="sidebar-divider">
+            {% if current_user.is_admin or 'grants' in all_permissions %}
+            <li class="nav-item{% if 'grants' in request.url %} active{% endif %}">
+                <a class="nav-link{% if 'grants' in request.url %} active{% endif %}" href="/grants">
+                    <i class="fas fa-address-card"></i>
+                    <span>Grants</span></a>
+            </li>
+            {% endif %}
+
+            <hr class="sidebar-divider">
+            {% if current_user.is_admin or 'sales_outreach' in  all_permissions %}
+            <li class="nav-item{% if 'operations' in request.url %} active{% endif %}">
+                <a class="nav-link {% if 'operations' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapsePresentations"
+                    aria-expanded="true" aria-controls="collapsePresentations">
+                    <i class="fas fa-fw fa-mail-bulk"></i>
+                    <span>Presentations</span>
+                </a>
+                <div id="collapsePresentations" class="collapse {% if 'inventory' in request.url %}show{% endif %}" aria-labelledby="collapsePresentations"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if '/presentations' in request.url and '/presentations/' not in request.url %}active{% endif %}" href="/presentations">Presentations</a>
+                        <a class="collapse-item {% if '/presentations/canvass_route_contacts' in request.url %}active{% endif %}" href="/presentations/canvass_route_contacts">Canvass Route Contcts</a>
+                        <a class="collapse-item {% if '/presentations/outreach_contacts' in request.url %}active{% endif %}" href="/presentations/outreach_contacts">Outreach Contacts</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+
+
+
+            <hr class="sidebar-divider"> 
+            {% if current_user.is_admin or 'operations' in all_permissions %}
+
+            <li class="nav-item{% if 'operations' in request.url %} active{% endif %}">
+                <a class="nav-link {% if 'operations' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseInventory"
+                    aria-expanded="true" aria-controls="collapseInventory">
+                    <i class="fas fa-fw fa-mail-bulk"></i>
+                    <span>Inventory</span>
+                </a>
+                <div id="collapseInventory" class="collapse {% if 'inventory' in request.url %}show{% endif %}" aria-labelledby="collapseInventory"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'inventory/operationalmetrics' in request.url %}active{% endif %}" href="/inventory/operationalmetrics">Operational Metrics</a>
+                        <a class="collapse-item {% if 'inventory/flower_properties' in request.url %}active{% endif %}" href="/inventory/flower_properties">Flower Properties</a>
+                        <a class="collapse-item {% if 'inventory/arrangement_type_recipe' in request.url %}active{% endif %}" href="/inventory/arrangement_type_recipe">Arrangement Type Recipe</a>
+                        <a class="collapse-item {% if 'inventory/storage' in request.url %}active{% endif %}" href="/inventory/storage">Flower Storage</a>
+                    </div>
+                </div>
+            </li>
+            <hr class="sidebar-divider">
+
+            <li class="nav-item{% if 'operations' in request.url  or '/vehicle/' in request.url %} active{% endif %}">
+                <a class="nav-link {% if 'operations' in request.url or '/vehicle/' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseOperaions"
+                    aria-expanded="true" aria-controls="collapseOperaions">
+                    <i class="fas fa-fw fa-mail-bulk"></i>
+                    <span>Operations</span>
+                </a>
+                <div id="collapseOperaions" class="collapse {% if 'operations' in request.url or '/vehicle/' in request.url %}show{% endif %}" aria-labelledby="collapseOperaions"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'operations/labor-estimate-calculator' in request.url %}active{% endif %}" href="/operations/labor-estimate-calculator">Labor Calculator</a>
+                        <a class="collapse-item {% if 'operations/max-capacities' in request.url %}active{% endif %}" href="/operations/max-capacities">Max Capacities</a>
+                        <a class="collapse-item {% if 'operations/calculator_base' in request.url %}active{% endif %}" href="/operations/calculator_base">Key Values</a>
+                        <a class="collapse-item {% if 'vehicle/add_vehicle' in request.url %}active{% endif %}" href="/vehicle/add_vehicle">Add Vehicle</a>
+                        <a class="collapse-item {% if 'vehicle/vehicle_repair' in request.url %}active{% endif %}" href="/vehicle/vehicle_repair">Vehicle Repair</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+
+
+            <hr class="sidebar-divider">
+            {% if current_user.is_admin or 'volunteer_days_management' in all_permissions%}
+            <li class="nav-item{% if 'volunteer_days_management' in request.url or 'volunteer_events' in request.url %} active{% endif %}">
+                <a class="nav-link {% if 'volunteer_days_management' in request.url or 'volunteer_events' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseVolunteer"
+                    aria-expanded="true" aria-controls="collapseVolunteer">
+                    <i class="fas fa-hands-helping"></i>
+                    <span>Volunteer Management</span>
+                </a>
+                <div id="collapseVolunteer" class="collapse {% if 'volunteer_days_management' in request.url or 'volunteer_events' in request.url %}show{% endif %}" aria-labelledby="collapseVolunteer"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'volunteer_days_management' in request.url %}active{% endif %}" href="/volunteer_days_management">Volunteer Days</a>
+                        <a class="collapse-item {% if 'volunteer_events' in request.url %}active{% endif %}" href="/volunteer_events">Volunteer Events</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+            <hr class="sidebar-divider">
+
+            {% if current_user.is_admin  or 'settings' in all_permissions %}
+            <li class="nav-item {% if 'settings' == request.url.split('/')[3] %} active{% endif %}">
+                <a class="nav-link" href="/settings">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Settings</span></a>
+            </li>
+            {% endif %}
+            <hr class="sidebar-divider">
+            {% if current_user.is_admin or 'youth_management' in all_permissions %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'youth_management' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseYouth"
+                    aria-expanded="true" aria-controls="collapseYouth">
+                    <i class="fas fa-fw fa-user-friends"></i>
+                    <span>Youth Management</span>
+                </a>
+                <div id="collapseYouth" class="collapse {% if 'youth_management' in request.url %}show{% endif %}" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'time_tracking' in request.url %}active{% endif %}" href="/time_tracking">Time Tracking</a>
+                        <a class="collapse-item {% if 'youth_roster' in request.url %}active{% endif %}" href="/youth_roster">Youth Roster</a>
+                        <a class="collapse-item {% if 'youth_reports' in request.url %}active{% endif %}" href="/youth_reports">Youth Reports</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+            {% if current_user.is_admin or 'email_outreach' in all_permissions %}
+            <hr class="sidebar-divider">
+            <li class="nav-item">
+                <a class="nav-link {% if 'email_outreach' in request.url %} active {% else %} collapsed {% endif %}" href="#" data-toggle="collapse" data-target="#collapseOutreachemail"
+                    aria-expanded="true" aria-controls="collapseOutreachemail">
+                    <i class="fas fa-fw fa-user-friends"></i>
+                    <span>Email Outreach</span>
+                </a>
+                <div id="collapseOutreachemail" class="collapse {% if 'email_outreach' in request.url %}show{% endif %}" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Tools:</h6>
+                        <a class="collapse-item {% if 'input_source' in request.url %}active{% endif %}" href="{{ site_url }}/email_outreach/input_source">Input Source</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+            <hr class="sidebar-divider">
+            {% if current_user.is_admin or 'admin' in all_permissions  %}
+            <li class="nav-item{% if '/subscription-management' in request.url %} active{% endif %}">
+                <a class="nav-link{% if '/subscription-management' in request.url %} active{% endif %}" href="/subscription-management">
+                    <i class="fas fa-fw fa-calendar-check"></i>
+                    <span>Subscriptions</span></a>
+            </li>
+            <hr class="sidebar-divider">
+            {% endif %}
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>

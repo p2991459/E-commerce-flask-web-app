@@ -1,0 +1,394 @@
+<!-- templates/delivery_planner.html -->
+
+{% extends "new_base.html" %}
+
+{% block content %}
+    <div class="dp-main">
+            {% if project_id %}
+            <div id="dp-inputs-1" style="text-align: left">
+                <h3>Planning of the project: {{ project_name }}</h3>
+                <br/>
+                    <label for="drivers">Select the drivers
+                        {% for driver in existing_drivers %}<br/>
+                            <input class="drivers" type="checkbox" id="chk_driver_{{ driver.id }}" name="{{ driver }}" value="{{ driver.id }}" />&nbsp;{{ loop.index }}. <u>{{ driver.driver_name }}</u> -- {{ driver.working_hours }}
+
+                        {% endfor %}
+                    </label>
+                    <br/>
+                <label for="num_drivers">Select the number of
+                    drivers </label><input style="width: 60px;" type="number" min="1"
+                                           name="num_drivers"
+                                           id="num_drivers"/><br/>
+                <label for="dp-year">Select the year</label>
+                <select id="dp-year">
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                </select><br/>
+                <label for="dp-month">Select the month</label>
+                <select id="dp-month">
+                    <option value="10">Oct</option>
+                    <option value="11">Nov</option>
+                    <option value="12">Dec</option>
+                </select><br/>
+                <button id="btn-plan-inputs-1">Plan</button>
+            </div>
+            <div id="dp-inputs-2">
+                Select dates:
+            </div>
+        {% else %}
+            <div class="dp-select">
+                <label for="dp_month">Select the year and
+                    month: </label><select id="dp_month">
+                <option value="2020-10">2020 October</option>
+                <option value="2020-11">2020 November</option>
+            </select>
+                <button id="btn-plan-month">Plan</button>
+            </div>
+        {% endif %}
+
+        <div class="routific-solutions">
+        {% if routific_solution %}
+            {% if routific_project %}
+                <b>{{ routific_project.date }}</b><br/>
+            {% endif %}
+            {% for driver, solution in routific_solution.output.solution.items() %}
+                <input type="checkbox" name="{{ driver }}" value="{{ driver }}" />&nbsp;{{ loop.index }}. <u>{{ get_driver_name(routific_solution.input.fleet, driver) }}</u>:
+                {% for s in solution %}
+                    <span title="{{ get_stop_address(routific_solution.input.visits, s.location_id) }}">{{ loop.index }}</span>,
+
+                {% endfor %}
+                <br/>
+            {% endfor %}
+            <button id="btn-move-to-another-project">Move to another project</button>
+            <div id="div-move-to-another-project" class="pc-hidden">
+                <select name="move-to-routific-project-id" id="move-to-routific-project-id">
+                {% for p in data.projects %}
+                  {% if p.routific_project_id == '5f5eeefcac034800172121f8' %}
+                  <option value="{{p.routific_project_id}}">DELIVER LATER</option>
+                  {% else %}
+                  <option value="{{p.routific_project_id}}">{{p.routific_project_name}}</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+              <button id="btn-move-to-another-project-now" >Move now</button>
+            </div>
+        {% endif %}
+        </div>
+
+        <div class="dp-content" id="dp-content"></div>
+        <div class="dp-actions" id="dp-actions"></div>
+    </div>
+    <div>
+    <img id="loadingImage" src="loading.gif" alt="loading" style="display: none; height: 35px; width: 35px;"/>
+    </div>
+    <style>
+        #dp-content {
+            text-align: left;
+            margin: 30px 120px;
+        }
+        .pc-hidden {
+            display: none;
+        }
+        .routific-solutions {
+            text-align: left;
+        }
+    </style>
+    <script>
+        window.selectedDates = [];
+        window.selectedRoutes = [];
+        window.pollStatus = "request_pending";
+
+        function daysInMonth(month, year) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        $(document).ready(function () {
+            var weekday = new Array(7);
+            weekday[0] = "Sunday";
+            weekday[1] = "Monday";
+            weekday[2] = "Tuesday";
+            weekday[3] = "Wednesday";
+            weekday[4] = "Thursday";
+            weekday[5] = "Friday";
+            weekday[6] = "Saturday";
+
+            function planMonth(event) {
+                console.log("In planMonth");
+                var year, month;
+                var html = "<table>";
+                var num_drivers = 2;
+                if (event.directCSA) {
+                    var year_month = $("#dp_month").val();
+                    var vals = year_month.split("-");
+                    month = parseInt(vals[1]);
+                    year = parseInt(vals[0]);
+                } else {
+                    num_drivers = $("#num_drivers").val();
+                    year = $("#dp-year").val();
+                    month = $("#dp-month").val();
+                }
+                var days = daysInMonth(month, year);
+                for (var i = 0; i < days; i++) {
+                    var dateToday = new Date(Date.parse(year + "-" + month + "-" + (i + 1)))
+                    html += "<tr><td>" + "<input type='checkbox' id='chk_" + i + "' value='" + (i + 1) + "'/></td>"
+                        + "<td>" + dateToday.toDateString() + "</td></tr>";
+                }
+                html += "</table>";
+                var html_actions = "<button id=\"btn-auto-select\">Select all</button>";
+                html_actions += "<button id=\"btn-start-planning\">Start automatic planning</button>";
+                html_actions += "<img id=\"loadingImage\" src=\"loading.gif\" alt=\"loading\" style=\"display: none; height: 35px; width: 35px;\"/>";
+                $("#dp-content").html(html);
+                $("#dp-actions").html(html_actions);
+                $('input:checkbox').click(function () {
+                    updateSelectedDates(this)
+                });
+            }
+
+            function autoSelect() {
+                $(':checkbox').each(function () {
+                    this.checked = true;
+                });
+                window.selectedDates = reloadSelectedDates();
+            }
+
+            function pollPlanningStatus(id) {
+                $.ajax({
+                    url: "getPlanningStatus",
+                    type: "get",
+                    beforeSend: function (xhr, settings) {
+                        $("#loadingImage").show();
+                    },
+                    data: {
+                        id: id
+                    },
+                    success: function (response) {
+                        var status = JSON.stringify(response.message);
+                        window.pollStatus = status;
+                        console.log(status);
+                        if (status === "[]") {
+                            $("#dp-content").append("---<br/>");
+                        } else {
+                            $("#dp-content").append(status + "<br/>");
+                        }
+                        if (status.includes("error")) {
+                            alert("Aborting. Error: " + status)
+                        } else if (!status.includes("finished")) {
+                            setTimeout(function () {
+                                pollPlanningStatus(id);
+                            }, 5000);
+                        } else {
+                            alert("All zones planned.");
+                        }
+                    },
+                    error: function (xhr) {
+                        window.pollStatus = 'there was an error';
+                        console.log(window.pollStatus)
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                        $("#loadingImage").hide();
+                    }
+                });
+            }
+
+            function startPlanning() {
+                var month, year;
+                var num_drivers=2;
+                var checkedDrivers=[];
+                if (event.directCSA) {
+                    var year_month = $("#dp_month").val();
+                    var vals = year_month.split("-");
+                    month = parseInt(vals[1]);
+                    year = parseInt(vals[0]);
+                } else {
+                    checkedDrivers = $('.drivers:checkbox:checked').map(function() {
+                        return this.value;
+                    }).get();
+                    if($("#num_drivers").val() > checkedDrivers.length) {
+                        num_drivers = $("#num_drivers").val();
+                    } else {
+                        num_drivers = checkedDrivers.length;
+                    }
+                    year = $("#dp-year").val();
+                    month = $("#dp-month").val();
+                }
+                $("#dp-content").html("");
+                setTimeout(function () {
+                    $("#dp-content").html("Starting planning request. This generally takes a few minutes. So, hold tight !<br/>");
+                    setTimeout(function () {
+                        $("#dp-content").append("Selected year: " + year.toString() + "<br/>");
+                        setTimeout(function () {
+                            $("#dp-content").append("Selected month: " + month.toString() + "<br/>");
+                            setTimeout(function () {
+                                $("#dp-content").append("Selected dates: " + selectedDates.toString() + "<br/>");
+                                setTimeout(function () {
+                                    $("#dp-content").append("Number of drivers: " + num_drivers + "<br/>");
+                                }, 400);
+                            }, 400);
+                        }, 400);
+                    }, 400);
+                }, 400);
+
+                $.ajax({
+                    url: "startPlanning",
+                    type: "get",
+                    beforeSend: function (xhr, settings) {
+                        $("#loadingImage").show();
+                        $("#target_table").text("");
+                    },
+                    data: {
+                        selectedDates: window.selectedDates.toString(),
+                        selectedMonth: month,
+                        selectedYear: year,
+                        productId: '{{ project_id }}',
+                        productName: '{{ project_name }}',
+                        numDrivers: num_drivers,
+                        selectedDrivers: checkedDrivers.join(",")
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        //while(window.pollStatus != "finished")
+                        {
+                            $("#dp-content").append(window.pollStatus + "<br/>");
+                            setTimeout(function () {
+                                pollPlanningStatus(response.id);
+                            }, 2000);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                        $("#loadingImage").hide();
+                    }
+                });
+            }
+
+            function moveToAnotherProject() {
+                window.selectedRoutes = [];
+                // select all the checkboxes and see at least one is selected
+                $('.routific-solutions :checkbox:checked').each(function () {
+                    window.selectedRoutes.push(this.value);
+                });
+                if (window.selectedRoutes.length > 0) {
+                    $("#div-move-to-another-project").toggle();
+                    console.log("Selected routes to move are : " + window.selectedRoutes.join(','));
+                } else {
+                    alert("Select a route");
+                    console.log("Selected routes is empty");
+                }
+            }
+
+            function moveAllNow() {
+                MAX_NUM_DRIVERS = 15;
+                $('.routific-solutions :checkbox:checked').each(function () {
+                    window.selectedRoutes.push(this.value);
+                });
+                if (window.selectedRoutes.length > 0) {
+                    $("#div-move-to-another-project").toggle();
+                    console.log("Selected routes to move are : " + window.selectedRoutes.join(','));
+                      // itemsToMove is an array of stop_ids that need to be moved
+                    console.log("Check all the checked items");
+                    var itemsToMove = [];
+
+                    $.each($("input[type=checkbox]:checked"), function(){
+                        {% if routific_solution %}
+                            {% for driver, solution in routific_solution.output.solution.items() %}
+                                if ($(this).val() === '{{ driver }}') {
+                                    // Get all stops
+                                    {% for s in solution %}
+                                        itemsToMove.push('{{ s.location_id }}');
+                                    {% endfor %}
+                                } else {
+                                    console.log("val=" + $(this).val() + ", driver = " + '{{ driver }}');
+                                }
+                            {% endfor %}
+                        {% endif %}
+                    });
+                    console.log("itemsToMove length = " + itemsToMove.length);
+                    console.log("My checked items are: " + itemsToMove.join(","));
+                    console.log("From: {{ routific_project_id }}");
+                    console.log("To: " + $('#move-to-routific-project-id').val());
+                    $.ajax({
+                      url: "moveItemsFromRoutificProject",
+                      type: "get",
+                      beforeSend: function(xhr, settings) {
+                        $("#loadingImage").show();
+                      },
+                      data: {
+                        itemsToMove: itemsToMove.join(","),
+                        fromProject: '{{routific_project_id}}',
+                        toProject: $('#move-to-routific-project-id').val(),
+                        numDrivers: MAX_NUM_DRIVERS - $("input[type=checkbox]:checked").length,
+                        productId: '{{ project_id }}',
+                        productName: '{{ project_name }}',
+                      },
+                      success: function(response) {
+                        console.log(response);
+                        //while(window.pollStatus != "finished")
+                        if(response.id !== undefined)
+                        {
+                            console.log("response.id is defined");
+                            $("#dp-content").append(window.pollStatus + "<br/>");
+                            setTimeout(function () {
+                                pollPlanningStatus(response.id);
+                            }, 2000);
+                        } else {
+                            console.log("response.id is undefined");
+                        }
+                        window.location.reload();
+                      },
+                      error: function(xhr) {
+                        //showMessage(($.parseJSON(xhr.responseText)).message);
+                        console.log('there was an error')
+                        console.log(xhr);
+                      },
+                      complete: function(xhr, textStatus) {
+                        console.log(textStatus);
+                        $("#loadingImage").hide();
+                      }
+                    });
+                } else {
+                    alert("Select a route");
+                    console.log("Selected routes is empty");
+                }
+            }
+
+            function updateSelectedDates(obj) {
+                console.log(" value is " + obj.value + " checked is " + obj.checked);
+                if (obj.checked) {
+                    selectedDates.push(obj.value);
+                } else {
+                    selectedDates.splice(selectedDates.indexOf(obj.value), 1);
+                }
+                console.log(selectedDates);
+            }
+
+            function reloadSelectedDates() {
+                selectedDates = [];
+                $(':checkbox').each(function () {
+                    var obj = this;
+                    if (obj.checked) {
+                        selectedDates.push(obj.value);
+                    } else {
+                        selectedDates.splice(selectedDates.indexOf(obj.value), 1);
+                    }
+                });
+                return selectedDates;
+            }
+
+            $(document).on('click', "#btn-plan-month", planMonth);
+            $(document).on('click', "#btn-plan-inputs-1", {directCSA: false}, planMonth);
+            $(document).on('click', "#btn-auto-select", autoSelect);
+            $(document).on('click', "#btn-start-planning", startPlanning);
+            $(document).on('click', "#btn-move-to-another-project", moveToAnotherProject);
+            $(document).on('click', "#btn-move-to-another-project-now", moveAllNow);
+            //$(document).on('click', "input:checkbox", updateSelectedDates(this));
+            console.log("ready");
+        });
+    </script>
+
+{% endblock %}

@@ -1,0 +1,341 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+{% block actual_content %}
+{% include "_tab_styles.html" %}
+<script type="text/javascript" src="{{ url_for('static', filename='tinymce/js/tinymce/tinymce.min.js') }}"></script>
+<style>
+    #filter_div {
+        margin: 25px 15px;
+    }
+    .check_boxes_zones_ul {
+        list-style: none;
+        -webkit-column-count: 3;
+        -moz-column-count: 3;
+        column-count: 3;
+    }
+    .check_boxes_marked_ul {
+        list-style: none;
+        -webkit-column-count: 3;
+        -moz-column-count: 3;
+        column-count: 3;
+    }
+    @media only screen and (max-width: 700px) {
+        .check_boxes_zones_ul {
+            column-count: 1;
+        }
+    }
+</style>
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Manage all customer data in one place.</h1>
+    </div>
+
+    <div class="card shadow mb-8">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Customer Data</h6>
+        </div>
+        <div class="card-body">
+            <div class="tabs">
+                <ul class="tabs-list">
+                    <li class="active"><a href="#manage-by-product">Manage By Product Category</a></li>
+                    <li><a href="#manage-by-all">Manage By All</a></li>
+                </ul>
+                <div class="tab active" id="manage-by-product">
+                    <div class="col-sm-12 pc-input-field">
+                        <label class="pc-input-field-label" for="project_name">Select a product</label>
+                        <select name="productId" id="productId" class="form-control">
+                            {% for product in data.data %}
+                                <option value="{{ product.productId }}">{{ product.product_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="csa-force-reload" class="pc-input-field-label"></label>
+                        <input id="csa-force-reload" type="checkbox" /> Refresh <i style="font-size: small">(This reloads all data from SquareSpace again, takes a few minutes to finish. Check this only if you know what you are doing.)</i>
+                        <fieldset class="form-group row mt-3">
+                            Fulfillment Status:
+                            <div class="col-sm-10">
+                                <div class="form-check">
+                                    <label class="form-check-label ml-4">
+                                    <input id="pending-only" name="fulfillment-status" class="form-check-input radio-inline" type="radio"  value="pending_only" checked>
+                                    Pending Only</label>
+                                    <label class="form-check-label ml-4">
+                                    <input class="form-check-input radio-inline" type="radio" id="all" name="fulfillment-status" type="radio" value="all">
+                                    All</label>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <button id="btn-csa-load-data" class="btn btn-outline-dark mt-1">Load Data</button>
+                    <button id="btn-reassign-zip-codes" class="btn btn-outline-dark mt-1">Reassign Delivery Zones</button>
+                    <button id="btn-create-routific-project-from-results" class="btn btn-outline-dark mt-1">Create Routific Project from results</button>
+                    <button id="btn-mark-fulfilled" class="btn btn-outline-dark mt-1">Mark as fulfilled</button>
+                    <button id="btn-reload-fulfillment-status" class="btn btn-outline-dark mt-1">Reload fulfillment status</button>
+                    <button id="btn-reload-delivery-dates" class="btn btn-outline-dark mt-1">Reload delivery dates</button>
+                    <button id="btn-show-subscription-details" class="btn btn-outline-dark mt-1">Show subscription details</button>
+                    <button id="btn-send-mc-emails" class="btn btn-outline-dark mt-1">Send Emails (MailChimp)</button>
+                    <button id="btn-unscheduled-orders" class="btn btn-outline-dark mt-1">Unscheduled orders</button>
+                </div>
+                <div class="tab" id="manage-by-all">
+                    <div class="col-sm-12 pc-input-field">
+                        <fieldset class="form-group row mt-3">
+                            Fulfillment Status:
+                            <div class="col-sm-10">
+                                <div class="form-check">
+                                    <label class="form-check-label ml-4">
+                                    <input id="pending-only-all" name="fulfillment-status-all" class="form-check-input radio-inline" type="radio"  value="pending_only" checked>
+                                    Pending Only</label>
+                                    <label class="form-check-label ml-4">
+                                    <input class="form-check-input radio-inline" type="radio" id="all-all" name="fulfillment-status-all" type="radio" value="all">
+                                    All</label>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <button id="btn-csa-load-data-all" class="btn btn-outline-dark mt-1">Load Data</button>
+                        <button id="btn-reassign-zip-codes-all" class="btn btn-outline-dark mt-1">Reassign Delivery Zones</button>
+                        <button id="btn-create-routific-project-from-results-all" class="btn btn-outline-dark mt-1">Create Routific Project from results</button>
+                        <button id="btn-mark-fulfilled-all" class="btn btn-outline-dark mt-1">Mark as fulfilled</button>
+                        <button id="btn-reload-fulfillment-status-all" class="btn btn-outline-dark mt-1">Reload fulfillment status</button>
+                        <button id="btn-reload-delivery-dates-all" class="btn btn-outline-dark mt-1">Reload delivery dates</button>
+                        <button id="btn-show-subscription-details-all" class="btn btn-outline-dark mt-1">Show subscription details</button>
+                        <button id="btn-send-mc-emails-all" class="btn btn-outline-dark mt-1">Send Emails (MailChimp)</button>
+                        <button id="btn-unscheduled-orders-all" class="btn btn-outline-dark mt-1">Unscheduled orders</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+<div id="filter_div"></div>
+<div class="table-responsive" id="target_table"></div>
+
+
+<div class="modal fade" id="tableModal" tabindex="-1" role="dialog" aria-labelledby="tableModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tableModalLabel">Edit details #<span id="title_order_id"></span></h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table-responsive">
+                    <tr><td>Order ID:</td><td><input type="text" id="order_id" disabled/></td></tr>
+                    <tr><td>Shipping Name:</td><td><input type="text" id="shipping_name"/></td></tr>
+                    <tr><td>Shipping Address 1:</td><td><input type="text" id="shipping_address_1"/></td></tr>
+                    <tr><td>Shipping Address 2:</td><td><input type="text" id="shipping_address_2"/></td></tr>
+                    <tr><td>Shipping City:</td><td><input type="text" id="shipping_city"/></td></tr>
+                    <tr><td>Shipping Zip:</td><td><input type="text" id="shipping_zip"/></td></tr>
+                    <tr><td>Shipping State:</td><td><input type="text" id="shipping_state"/></td></tr>
+                    <tr><td>Shipping Phone:</td><td><input type="text" id="shipping_phone"/></td></tr>
+                    <tr><td>Shipping Email:</td><td><input type="text" id="shipping_email"/></td></tr>
+                    <tr><td>Customer Notes:</td><td><textarea disabled id="customer_notes"></textarea></td></tr>
+                    <tr><td>Notes:</td><td><textarea id="notes"></textarea></td></tr>
+                    <tr><td>Delivery Dates:</td><td><div id="delivery_dates" disabled></div></td></tr>
+                    <tr><td>Total Delivered:</td><td><input type="text" id="total_delivered" disabled /></td></tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-update-shipping-details">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createRoutificProjectModal" tabindex="-1" role="dialog" aria-labelledby="createRoutificProjectModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createRoutificProjectModalLabel">Routific project details<span id="title_order_id"></span></h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="pc-multiple-products"></div>
+                <table>
+                <thead><tr><td style="width: 35%"></td><td style="width: 65%"></td></tr></thead>
+                    <tr><td>Project Name:</td><td><input type="text" id="project_name"/></td></tr>
+                    <tr><td>Project Date:</td><td><input type="text" id="project_date"/></td></tr>
+                    <tr><td>Project Drivers:</td><td>
+                        {% for driver in existing_drivers %}<br/>
+                                <input class="drivers" type="checkbox"
+                                       id="chk_driver_{{ driver.id }}"
+                                       name="{{ driver }}"
+                                       value="{{ driver.id }}"/>
+                                {{ loop.index }}.
+                                <u>{{ driver.driver_name }}</u> --
+                                {{ driver.working_hours }}
+                        {% endfor %}
+                    </td></tr>
+                </table>
+
+                <div class="tabs" style="margin-top: 20px;">
+                    <ul class="tabs-list">
+                        <li class="active"><a href="#single_chunk">Single chunk</a></li>
+                        <li><a href="#multiple_chunks">Multiple</a></li>
+                    </ul>
+                    <div class="tab active" id="single_chunk">
+                        <table>
+                            <thead><tr><td style="width: 35%"></td><td style="width: 65%"></td></tr></thead>
+                            <tr><td>Number of orders:</td><td id="total_orders_count"></td></tr>
+                            <tr><td></td><td><span style="font-size: smaller; font-style: italic">These are the number of orders from the top of the results that will be included in the routific project.</span></td></tr>
+                            <tr><td>Beginning at Order ID:</td><td id="beginning_order_id"></td></tr>
+                        </table>
+                    </div>
+                    <div class="tab" id="multiple_chunks">
+                        <table>
+                            <thead><tr><td style="width: 35%"></td><td style="width: 65%"></td></tr></thead>
+                                <tr><td>Split count:</td><td><input type="text" id="split_count" value="40"/></td></tr>
+                                <tr><td></td><td><span style="font-size: smaller; font-style: italic">The results list will be broken down into splits of given number. Valid split counts can be '40' => divides results into splits of 40 each or '40,28,32' => divides results into splits of 40, 28 and 32 in size.</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-create-routific-project-from-results-now">Create Project</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="markFulfilledModal" tabindex="-1" role="dialog" aria-labelledby="markFulfilledModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markFulfilledModalLabel">Mark as fulfilled</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="mark_fulfilled_content">
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-mark-fulfilled-now">Mark fulfilled</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sendMailChimpModal" tabindex="-1" role="dialog" aria-labelledby="sendMailChimpModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 1250px !important; height: 100%;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sendMailChimpModalLabel">Send emails</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="sendMailChimpModalContent">
+                    <div id="emails"></div>
+                    <div class="form-inline">
+                        <div class="form-inline custom-control-inline">
+                            <label for="emailSubject" class="col-sm-1 col-form-label">Subject</label>
+                            <input size="100" type="text" name="emailSubject" id="emailSubject" class="form-control col-sm-9 col-xs-9"/>
+                            <a class="email-templates" href="#" id="template-simple">Simple</a>&nbsp;&nbsp;&nbsp;
+                            <a class="email-templates" href="#" id="template-original">Original</a><br/>
+                        </div>
+                    </div>
+                    <div class="form-inline">
+                        <div class="form-inline custom-control-inline">
+                            <label for="emailTo" id="emailToLabel" class="col-sm-1 col-form-label">&nbsp;&nbsp;&nbsp;To&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                            <input size="100" type="text" name="emailTo" id="emailTo" value="{{ ADMIN_EMAIL }}" class="form-control col-sm-9 col-xs-9"/>
+                            <fieldset class="form-group row mt-3">
+                                <div class="col-sm-10">
+                                    <div class="form-check">
+                                        <label class="form-check-label ml-4" for="mc_email_mode_test">
+                                            <input type="radio" id="mc_email_mode_test" name="mc_email_mode" value="test" class="form-check-input radio-inline" checked>
+                                        Test</label>
+                                        <label class="form-check-label ml-4">
+                                            <input type="radio" class="form-check-input radio-inline" id="mc_email_mode_live" name="mc_email_mode" value="live">
+                                        Live</label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <label for="emailBody"></label><textarea cols="80" rows="50" style="height: 400px" id="emailBody" name="emailBody">
+                      </textarea>
+                    <div class="form-inline">
+                        <div class="form-inline custom-control-inline">
+                            <label for="emailBodyText" class="col-sm-2 col-form-label">Text Only Email</label>
+                            <textarea cols="80" rows="25" style="height: 200px" id="emailBodyText" name="emailBodyText" class="form-control"></textarea>
+
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        tinymce.init({
+                            height: '100%',
+                            selector: '#emailBody',
+  plugins: [
+    'advlist autolink autoresize lists link image charmap print preview anchor',
+    'searchreplace visualblocks code fullscreen',
+    'insertdatetime media table paste imagetools wordcount'
+  ],
+  toolbar: 'code | insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+                            imagetools_toolbar: "rotateleft rotateright | flipv fliph | editimage imageoptions",
+                           // toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media fullpage | forecolor backcolor emoticons | codesample',
+                            images_upload_url: '{{ url_for('main.imageuploader') }}',
+                            automatic_uploads: true,
+                            images_reuse_filename: false,
+                            relative_urls : false,
+                            remove_script_host : false,
+                            images_upload_base_path: '{{ site_url }}/upload',
+                            codesample_languages: [
+                                { text: 'HTML/XML', value: 'markup' },
+                                { text: 'JavaScript', value: 'javascript' },
+                                { text: 'CSS', value: 'css' },
+                                { text: 'Processing', value: 'processing' },
+                                { text: 'Python', value: 'python' }
+                            ],
+                            width: "100%",
+                        });
+                    </script>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-send-mc-emails-now">Send email</button>
+            </div>
+        </div>
+    </div>
+</div>
+        </div>
+    </div>
+    <script>
+  $(document).ready(function() {
+      window.DEFAULT_EMAIL_TEMPLATE=`{{ default_email_template }}`;
+      window.SIMPLE_EMAIL_TEMPLATE=`{{ simple_email_template }}`;
+      window.ADMIN_EMAIL=`{{ ADMIN_EMAIL }}`;
+      var productId =  $("#productId");
+      var productIdValue = productId.val();
+      var productName = $("#productId option:selected").text();
+      console.log("selected product is " + productIdValue + " -- " + productName);
+      if (productName.toLowerCase().includes('subscription')){
+            $('#btn-show-subscription-details').show();
+      } else {
+            $('#btn-show-subscription-details').hide();
+      }
+      productId.change(function (){
+          productId =  $("#productId");
+          productIdValue = productId.val();
+          productName = $("#productId option:selected").text();
+          console.log("selected product is " + productIdValue + " -- " + productName);
+          if (productName.toLowerCase().includes('subscription')){
+                $('#btn-show-subscription-details').show();
+          } else {
+                $('#btn-show-subscription-details').hide();
+          }
+      });
+  });
+    </script>
+{% endblock %}

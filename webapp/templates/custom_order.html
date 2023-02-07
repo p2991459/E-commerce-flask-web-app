@@ -1,0 +1,253 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    {% if existing_orders %}
+        <div class="column is-8 is-offset-2">
+            <h3 class="title">Existing custom orders</h3>
+            <div class="box">
+                <div class="table-responsive">
+                    <table class="table" style="margin: 0 auto;">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Order ID</th>
+                          <th scope="col">Billing Name</th>
+                          <th scope="col">Billing Email</th>
+                          <th scope="col">Actions</th>
+                        </tr>
+                      </thead>
+                      {% for eo in existing_orders %}
+                          <tbody>
+                            <tr>
+                              <th scope="row">{{ loop.index }}</th>
+                              <td>{{ eo.order_id }}</td>
+                              <td>{{ eo.billing_name }}</td>
+                              <td>{{ eo.billing_email }}</td>
+                                <td><a href="/custom_order?edit=order&id={{ eo.id }}">✎ </a>&nbsp;&nbsp;&nbsp;
+                                    <a href="/custom_order?edit=order&id={{ eo.id }}&delete=true" onclick="return confirm('Are you sure to delete {{ eo.order_id }}?')">x</a></td>
+                            </tr>
+                          </tbody>
+                      {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <div class="column is-4 is-offset-4" style="margin-top: 35px">
+        <h3 class="title">{% if order_in_edit %}Edit{% else %}Add{% endif %} Custom Order   {% if order_in_edit %} <u>#{{ order_in_edit.order_id }}</u>{% endif %}</h3>
+        <div class="box">
+            <form method="POST" action="/custom_order{% if order_in_edit %}?edit=order{% endif %}">
+                <div class="field">
+                    <div class="control">
+                        <label for="product_id">Product</label>
+                        <select name="product_id" id="product_id" class="form-control">
+                            {% for product in data.data %}
+                                <option value="{{ product.productId }}" {% if order_in_edit and order_in_edit.product_id == product.productId %}selected{% endif %}>{{ product.product_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="order_date">
+                            Order Date </label>
+                        <input class="input is-large" type="text"
+                                   id="order_date" name="order_date" placeholder="Order Date"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.order_date }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="order_source">
+                            Order Source </label>
+                        <input class="input is-large" type="text"
+                                   id="order_source" name="order_source" placeholder="Order Source"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.order_source }}"{% endif %}>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="item_qty">
+                            Order Quantity </label>
+                        <input class="input is-large" type="text"
+                                   id="item_qty" name="item_qty" placeholder="Order Quantity"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.item_qty }}"{% endif %}>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        <label for="billing">
+                            Billing Details </label>
+                        <input class="input is-large" type="text"
+                                   id="billing_name" name="billing_name" placeholder="Billing Name"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.billing_name }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="billing_address1" name="billing_address1" placeholder="Billing Address 1"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.billing_address1 }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="billing_address2" name="billing_address2" placeholder="Billing Address 2"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.billing_address2 }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="billing_city" name="billing_city" placeholder="Billing City"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.billing_city }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="billing_zip" name="billing_zip" placeholder="Billing Zip"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.billing_zip }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="billing_state" name="billing_state" placeholder="Billing State"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.billing_state }}"{% endif %}>
+                        <input class="input is-large" type="text"
+                                   id="billing_country" name="billing_country" placeholder="Billing Country"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.billing_country }}"{% endif %}>
+                        <input class="input is-large" type="text"
+                                   id="billing_phone" name="billing_phone" placeholder="Billing Phone"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.billing_phone }}"{% endif %}>
+                        <input class="input is-large" type="text"
+                                   id="billing_email" name="billing_email" placeholder="Billing Email"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.billing_email }}"{% endif %}>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        <label for="billing">
+                            Shipping Details </label>
+                        <input class="input is-large" type="text"
+                                   id="shipping_name" name="shipping_name" placeholder="shipping Name"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.shipping_name }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="shipping_address1" name="shipping_address1" placeholder="shipping Address 1"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.shipping_address1 }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="shipping_address2" name="shipping_address2" placeholder="shipping Address 2"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.shipping_address2 }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="shipping_city" name="shipping_city" placeholder="shipping City"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.shipping_city }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="shipping_zip" name="shipping_zip" placeholder="shipping Zip"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.shipping_zip }}"{% endif %}>                        <input class="input is-large" type="text"
+                                   id="shipping_state" name="shipping_state" placeholder="shipping State"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.shipping_state }}"{% endif %}>
+                        <input class="input is-large" type="text"
+                                   id="shipping_country" name="shipping_country" placeholder="shipping Country"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.shipping_country }}"{% endif %}>
+                        <input class="input is-large" type="text"
+                                   id="shipping_phone" name="shipping_phone" placeholder="shipping Phone"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.shipping_phone }}"{% endif %}>
+                        <input class="input is-large" type="text"
+                                   id="shipping_email" name="shipping_email" placeholder="shipping Email"
+                                   autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.shipping_email }}"{% endif %}>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        <label for="delivery_zone">
+                            Delivery zone </label>
+                        <input class="input is-large" type="text"
+                                   id="delivery_zone" name="delivery_zone" placeholder="Delivery Zone"
+                                   autofocus="" disabled {% if order_in_edit %}value="{{ order_in_edit.delivery_zone }}"{% endif %}>
+                    </div>
+                </div>
+                            <div class="field">
+                    <div class="control">
+                        <label for="delivery_dates">
+                            Delivery dates </label>
+                        {% if order_in_edit %}
+
+                        {% else %}
+                            <div class="input is-large" id="delivery_dates">{{ order_in_edit.delivery_dates }}</div>
+                        {% endif %}
+                                        </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="personal_note">
+                            Personal note </label>
+                        <textarea class="input is-large" id="personal_note" name="personal_note" >{{ order_in_edit.personal_note }}</textarea>
+                                        </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label for="personal_note">
+                            Notes </label>
+                        <textarea class="input is-large" id="personal_note" name="notes">{{ order_in_edit.notes }}</textarea>
+                                        </div>
+                </div>
+                            <div class="field">
+                                <div class="control">
+                                    <label for="paid_on">
+                                        Paid on</label>
+                                    <input class="input is-large" type="text"
+                                               id="paid_on" name="paid_on" placeholder="Paid on"
+                                               autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.paid_on }}"{% endif %}>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <label for="paid_via">
+                                        Paid via</label>
+                                    <input class="input is-large" type="text"
+                                               id="paid_via" name="paid_via" placeholder="Paid via"
+                                               autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.paid_via }}"{% endif %}>
+                                </div>
+                            </div>                            
+                            <div class="field">
+                                <div class="control">
+                                    <label for="payment_reference_number">
+                                        Payment reference number</label>
+                                    <input class="input is-large" type="text"
+                                               id="payment_reference_number" name="payment_reference_number" placeholder="Payment reference number"
+                                               autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.payment_reference_number }}"{% endif %}>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <label for="amount_paid">
+                                        Amount paid</label>
+                                    <input class="input is-large" type="text"
+                                               id="amount_paid" name="amount_paid" placeholder="Amount paid"
+                                               autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.amount_paid }}"{% endif %}>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <label for="discount">
+                                        Discount</label>
+                                    <input class="input is-large" type="text"
+                                               id="discount" name="discount" placeholder="Discount"
+                                               autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.discount }}"{% endif %}>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <label for="vat">
+                                        VAT</label>
+                                    <input class="input is-large" type="text"
+                                               id="vat" name="vat" placeholder="VAT"
+                                               autofocus=""  {% if order_in_edit %}value="{{ order_in_edit.vat }}"{% endif %}>
+                                </div>
+                            </div>
+            {% if order_in_edit %}
+                <input type="hidden" name="edit" value="order" />
+                <input type="hidden" name="id" value="{{ order_in_edit.id }}" />
+            {% else %}
+                <input type="hidden" name="new-order" value="add" />
+            {% endif %}
+                <button class="button is-block is-info is-large">
+                    Save
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+    .control label {
+        width: 100%;
+    }
+    .control {
+        margin-bottom: 20px;
+    }
+    </style>
+{% endblock %}

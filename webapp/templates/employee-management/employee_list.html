@@ -1,0 +1,56 @@
+<!-- templates/employee_list.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">Employees list</h3>
+        <div class="box">
+            <table class="table table-borderless" id="tbl-emp-lst">
+                <thead class="thead-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>View Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employee_list %}
+                    <tr>
+                        <td>
+                            {{ emp.id }}
+                        </td>
+                        <td>
+                            {{ emp.name }}
+                        </td>
+                        <td>
+                            <a href="/employee-management/employee-detail/{{emp.id}}"> 
+                                <i class="fa fa-paper-plane"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#tbl-emp-lst').DataTable({
+                paging: false,
+                responsive: true,
+                columnDefs: [
+                    { responsivePriority: 1, targets: 1 },
+                    { responsivePriority: 2, targets: 2 },
+                ]
+            });
+        });
+    </script>
+{% endblock %}

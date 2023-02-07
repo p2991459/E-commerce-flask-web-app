@@ -1,0 +1,187 @@
+<!-- templates/presentations.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-success">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <a class="btn btn-dark {%  if 'show=followup' in request.url %}active{% endif %}" href="/presentations?show=followup">Show Follow-Up Only</a>
+    <a class="btn btn-dark {%  if 'show=archived' in request.url %}active{% endif %}" href="/presentations?show=archived">Show archived</a>
+    <a class="btn btn-dark {%  if 'show=all' in request.url %}active{% endif %}" href="/presentations?show=all">Show All</a>
+    <div style="height: 20px"></div>
+    {% if existing_presentations %}
+        <div class="column is-8 is-offset-2">
+            <h3 class="title">Existing Presentations</h3>
+            <div class="">
+                    <table class="table display responsive table-responsive table-bordered" style="width: 100%;" id="presentations_table">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Name</th>
+                          <th scope="col">Email</th>
+                          <th scope="col">Phone Number</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">Presentation type</th>
+                          <th scope="col">Presentation location</th>
+                          <th scope="col">Notes</th>
+                          <th scope="col">Subs. Link</th>
+                          <th scope="col">Follow Up</th>
+                          <th scope="col">Actions</th>
+                        </tr>
+                      </thead><tbody>
+                      {% for pr in existing_presentations %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ pr.name }}</td>
+                                <td>{{ pr.email }}</td>
+                                <td>{{ pr.phone_number }}</td>
+                                <td>{{ pr.presentation_date }}</td>
+                                <td>{{ pr.presentation_type }}</td>
+                                <td>{{ pr.presentation_location }}</td>
+                                <td>{{ pr.notes or '' }}</td>
+                                <td>
+                                    <button class="btn btn-primary" data-link="{{ site_url }}/presentation-signup/{{ pr.uuid}}" title="Copy Link" onclick="copyToClipboard(this)">
+                                    <i class="fa fa-copy"></i>
+                                    </button>
+                                </td>
+                                <td>{{ pr.followup }}</td>
+                                <td>
+                                    <a href="/presentations?edit=presentation&id={{ pr.presentation_id }}">✎ </a>
+                                    {% if pr.archived != 1 %}<a href="/presentations?edit=presentation&id={{ pr.presentation_id }}&archive=true" onclick="return confirm('Are you sure to archive presentation {{ pr.name }}?')">📁</a>&nbsp;{% endif %}
+                                    <a href="/presentations?edit=presentation&id={{ pr.presentation_id }}&delete=true" onclick="return confirm('Are you sure to delete presentation {{ pr.presentation_id }}?')">x</a>
+                                </td>
+                            </tr>
+                      {% endfor %}</tbody>
+                        <tfoot>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Name</th>
+                          <th scope="col">Email</th>
+                          <th scope="col">Phone Number</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">Presentation type</th>
+                          <th scope="col">Presentation location</th>
+                          <th scope="col">Notes</th>
+                          <th scope="col">Subs. Link</th>
+                          <th scope="col">Follow Up</th>
+                          <th scope="col">Actions</th>
+                        </tr>
+                      </tfoot>
+                    </table>
+            </div>
+        </div>
+    {% endif %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-success">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-4 is-offset-4" style="margin-top: 35px">
+        <h3 class="title">{% if presentation_in_edit %}Edit{% else %}Add{% endif %} Presentation {% if presentation_in_edit %} <u>#{{ presentation_in_edit.presentation_id }}</u>{% endif %}</h3>
+        <div class="box col-md-6">
+            <form method="POST" action="/presentations{% if presentation_in_edit %}?edit=presentation{% endif %}">
+                <div class="form-group">
+                    <label for="name"> Name: </label>
+                    <input class="input form-control" type="text"
+                               id="name" name="name" placeholder="Presentation Name"
+                               {% if presentation_in_edit %} autofocus="" value="{{ presentation_in_edit.name }}"{% endif %}>
+                </div>
+                <div class="form-group">
+                    <label for="email"> Email: </label>
+                    <input class="input form-control" type="email"
+                               id="email" name="email" placeholder="Email"
+                               {% if presentation_in_edit %}value="{{ presentation_in_edit.email }}"{% endif %}>
+                </div>
+                <div class="form-group">
+                    <label for="phone_number"> Phone Number: </label>
+                    <input class="input form-control" type="text"
+                               id="phone_number" name="phone_number" placeholder="Phone Number"
+                               {% if presentation_in_edit %}value="{{ presentation_in_edit.phone_number }}"{% endif %}>
+                </div>
+                <div class="form-group">
+                    <label for="presentation_date"> Presentation Date: </label>
+                    <input class="input form-control" type="text"
+                               id="presentation_date" name="presentation_date" placeholder="Presentation Date"
+                               {% if presentation_in_edit %}value="{{ presentation_in_edit.presentation_date }}"{% endif %}>
+                </div>
+                <div class="form-group">
+                    <label for="presentation_type"> Presentation Type: </label>
+                    <input class="input form-control" type="text"
+                               id="presentation_type" name="presentation_type" placeholder="Presentation Type"
+                               {% if presentation_in_edit %}value="{{ presentation_in_edit.presentation_type }}"{% endif %}>
+                </div>
+                <div class="form-group">
+                    <label for="presentation_location"> Presentation Location: </label>
+                    <input class="input form-control" type="text"
+                               id="presentation_location" name="presentation_location" placeholder="Presentation Location"
+                               {% if presentation_in_edit %}value="{{ presentation_in_edit.presentation_location }}"{% endif %}>
+                </div>
+                <div class="form-group">
+                    <label for="notes"> Notes: </label>
+                    <textarea class="input form-control" type="text"
+                               id="notes" name="notes" placeholder="Notes" rows="8" cols="80">{% if presentation_in_edit %}{{presentation_in_edit.notes or ''}}{% endif %}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="followup"> Follow Up:  </label>
+                    <div class="form-check">
+                        <div class="form-check form-check-inline">
+                            <input name="followup" class="form-check-input" type="radio" id="followup_yes" value="Y" {% if presentation_in_edit and presentation_in_edit.followup == 'Y' %}checked{% endif %}>
+                            <label class="form-check-label" for="followup_yes">Yes</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input name="followup" class="form-check-input" type="radio" id="followup_no" value="N" {% if presentation_in_edit and presentation_in_edit.followup != 'Y' %}checked{% endif %}>
+                            <label class="form-check-label" for="followup_no">No</label>
+                        </div>
+                    </div>
+                    
+                </div>
+
+            {% if presentation_in_edit %}
+                <input type="hidden" name="edit" value="presentation" />
+                <input type="hidden" name="id" value="{{ presentation_in_edit.presentation_id }}" />
+            {% else %}
+                <input type="hidden" name="new-presentation" value="add" />
+            {% endif %}
+                <button class="btn btn-primary is-block is-info is-large">
+                    Save
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+        $("#presentations_table").DataTable(
+              {
+                paging: true,
+                pageLength: 100,
+                responsive: true ,
+                columnDefs: [
+                  { className: 'desktop', targets: '_all' },
+                  { className: 'mobile-l mobile-p', targets: [0,1,4] },
+                      {
+                          targets: '_all',
+                          createdCell: function (td, cellData, rowData, row, col) {
+                              $(td).css('padding', '10px')
+                          }
+                      }
+                ],
+                fixedColumns: { left: 2, right: 1 },
+              }
+        );
+        $("#presentations_table").doubleScroll();
+        $("#presentation_date").datetimepicker({
+            defaultDate:new Date(),
+            step:30,
+            format:'m-d-Y H:i'
+        });
+    });
+
+    </script>
+{% endblock %}

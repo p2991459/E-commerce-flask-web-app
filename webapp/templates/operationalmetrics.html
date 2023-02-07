@@ -1,0 +1,149 @@
+{% extends "actual_base.html" %} {% block actual_content %}
+<div class="col-lg-12 mb-8">
+    <!-- Project Card -->
+    <div class="card shadow mb-8">
+        <div class="card-header py-6">
+            <h6 class="m-0 font-weight-bold text-primary">Arrangement Production</h6>
+        </div>
+        <div class="card-body">
+            <iframe class="airtable-embed" src="{{ arr_prod_url }}?backgroundColor=purple&viewControls=on" frameborder="0" onmousewheel="" width="100%" height="533" style="background: transparent; border: 1px solid #ccc;"></iframe>
+        </div>
+    </div>
+</div>
+<div class="col-lg-12 mb-8">
+    <!-- Project Card -->
+    <div class="card shadow mb-8">
+        <div class="card-header py-6">
+            <h6 class="m-0 font-weight-bold text-primary">Harvest Goals</h6>
+        </div>
+        <div class="card-body">
+            <iframe class="airtable-embed" src="{{ harvest_goal_url }}?backgroundColor=purple&viewControls=on" frameborder="0" onmousewheel="" width="100%" height="533" style="background: transparent; border: 1px solid #ccc;"></iframe>
+        </div>
+    </div>
+</div>
+    <!--<iframe id="airtable_inventory_base" class="airtable-embed" src="{{ source }}" frameborder="0" onmousewheel="" width="100%" height="533" style="background: transparent; border: 1px solid #ccc;"></iframe>-->
+    <div class="pt-2">
+        <img id="loadingImage" src="loading.gif" alt="loading" style="display: none; height: 35px; width: 35px;"/>
+    </div>
+<!-- Content Column -->
+<div class="col-lg-12 mb-8">
+    <!-- Project Card -->
+    <div class="card shadow mb-8">
+        <div class="card-header py-6">
+            <h6 class="m-0 font-weight-bold text-primary">Arrangement Production</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <h6 class="col-9">Arrangement Production for the projects having Project Date in the next <b>{{ settings['generate_production_days_before'] }} day(s)</b> gets generated.</h6> 
+                <button type="button" class="btn btn-secondary col-2" id="update_days">Update</button>
+            </div>
+            <hr>
+            <button type="button" class="btn btn-success" id="generate_production">Generate Arrangement Production</button>
+            <a href="reload_products" class="btn btn-success" id="reload_products">Reload Products</a>
+            <div class="row mt-3">
+                <form action="/operations/products_mapping" method="post" id="product_mapping_form">
+                    <table class="table display responsive table-responsive table-bordered" style="width: 100%;" id="mapping_table">
+                        <thead>
+                          <tr>
+                            <th scope="col">#</th>
+                            <th scope="col" class="text-center">Delivery Route Products</th>
+                            <th scope="col"></th>
+                            <th scope="col">Product Recipe</th>
+                          </tr>
+                        </thead><tbody>
+                        {% for routific_product in routific_products %}
+                            <tr>
+                                <input type="hidden" id="routific_id-{{ loop.index}}" name="routific_id-{{ loop.index}}" value="{{ routific_product.product_id }}"/>
+                                <td>{{ loop.index}}</td>
+                                <td>{{ routific_product.product_name }}</td>
+                                <td>=></td>
+                                <td><select id="airtable_id-{{ loop.index }}" name="airtable_id-{{ loop.index }}">
+                                    <option value="NA" selected>N/A</option>
+                                    {% for airtable_product in airtable_products %}
+                                        {% if products_mapping[routific_product.product_id] == airtable_product.product_id%}
+                                        <option value="{{ airtable_product.product_id }}" selected>{{ airtable_product.product_name }}</option>
+                                        {% else %}
+                                        <option value="{{ airtable_product.product_id }}">{{ airtable_product.product_name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select></td>
+                            </tr>
+                        {% endfor %}</tbody>
+                          <tfoot>
+                          <tr>
+                            <th scope="col">#</th>
+                            <th class="text-center">Delivery Route Products</th>
+                            <th></th>
+                            <th>Product Recipe</th>
+                          </tr>
+                        </tfoot>
+                      </table>
+                      <div class="row justify-content-center">
+                      <button type="submit" class="btn btn-primary">Save Mapping</button>
+                    </div>
+                </form>
+            </div>
+            <div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="dayDifferenceModal" tabindex="-1" role="dialog" aria-labelledby="tableModalDayDifference"
+         aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dayDiffModalTitle">Update Days</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <form action="settings" method="post" id="day_difference">
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label for="days" class="col-2">Days</label>
+                        <input type="number" class="form-control col-3" name="days" id="days" required value="{{ settings['generate_production_days_before'] }}"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btn-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+
+    $('#generate_production').on('click', function(){
+        $.ajax({
+            url: "generate_production",
+            type: "get",
+            beforeSend: function (xhr, settings) {
+                $("#loadingImage").show();
+                $("#generate_production").attr("disabled","disabled")
+            },
+            success: function (response) {
+                console.log(response);
+                location.reload()
+            },
+            error: function (xhr) {
+                console.log('there was an error')
+                console.log(xhr);
+            },
+            complete: function (xhr, textStatus) {
+                console.log(textStatus);
+                $("#loadingImage").hide();
+                $("#generate_production").removeAttr("disabled")
+            }
+        });
+    });
+
+    $("#update_days").on('click', function(){
+        $("#dayDifferenceModal").modal('show');
+    });
+});
+</script>
+{% endblock %}

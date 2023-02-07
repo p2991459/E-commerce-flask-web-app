@@ -1,0 +1,338 @@
+{% extends "actual_base.html" %} {% block actual_content %}
+
+<!-- Content Column -->
+<div class="">
+    <!-- Project Card -->
+    <div class="card shadow mb-8">
+        <div class="card-header py-6">
+            <h6 class="m-0 font-weight-bold text-primary">Arrangement Types Recipe</h6>
+        </div>
+        <div class="card-body">
+            <button type="button" class="btn btn-success mb-3" id="add_new_arr_type_recipe">Add new Arrangement Type Recipe</button>
+            <table class="table table-responsive table-bordered" id="arr_type_recipe_table" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th class="text-nowrap">Name</th>
+                        <th class="text-nowrap">Flower 1</th>
+                        <th class="text-nowrap"># Flower 1</th>
+                        <th class="text-nowrap">Flower 2</th>
+                        <th class="text-nowrap"># Flower 2</th>
+                        <th class="text-nowrap">Flower 3</th>
+                        <th class="text-nowrap"># Flower 3</th>
+                        <th class="text-nowrap">Flower 4</th>
+                        <th class="text-nowrap"># Flower 4</th>
+                        <th class="text-nowrap">Flower 5</th>
+                        <th class="text-nowrap"># Flower 5</th>
+                        <th class="text-nowrap">Flower 6</th>
+                        <th class="text-nowrap"># Flower 6</th>
+                        <th class="text-nowrap">Flower 7</th>
+                        <th class="text-nowrap"># Flower 7</th>
+                        <th class="text-nowrap">Flower 8</th>
+                        <th class="text-nowrap"># Flower 8</th>
+                        <th class="text-nowrap">Flower 9</th>
+                        <th class="text-nowrap"># Flower 9</th>
+                        <th class="text-nowrap">Arrangement Production</th>
+                        <th class="text-nowrap">Harvest Goals</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for atr in arr_types_recipes %}
+                        <tr>
+                            <td>{{ atr.id }}</td>
+                            <td>{{ atr.name }}</td>
+                            <td>{{ atr.flower1 }}</td>
+                            <td>{{ atr.qty_flower1 }}</td>
+                            <td>{{ atr.flower2 }}</td>
+                            <td>{{ atr.qty_flower2 }}</td>
+                            <td>{{ atr.flower3 }}</td>
+                            <td>{{ atr.qty_flower3 }}</td>
+                            <td>{{ atr.flower4 }}</td>
+                            <td>{{ atr.qty_flower4 }}</td>
+                            <td>{{ atr.flower5 }}</td>
+                            <td>{{ atr.qty_flower5 }}</td>
+                            <td>{{ atr.flower6 }}</td>
+                            <td>{{ atr.qty_flower6 }}</td>
+                            <td>{{ atr.flower7 }}</td>
+                            <td>{{ atr.qty_flower7 }}</td>
+                            <td>{{ atr.flower8 }}</td>
+                            <td>{{ atr.qty_flower8 }}</td>
+                            <td>{{ atr.flower9 }}</td>
+                            <td>{{ atr.qty_flower9 }}</td>
+                            <td>{{ atr.arr_production }}</td>
+                            <td>{{ atr.harvest_goal }}</td>
+                            <td><a class="edit" href="#"
+                                data-id="{{ atr.id }}" data-handled_by="{{ atr.id }}" >✎ </a>&nbsp;
+                            <a class="delete" href="#"
+                                data-id="{{ atr.id }}" data-handled_by="{{ atr.id }}">x</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="arrTypeRecipeModal" tabindex="-1" role="dialog" aria-labelledby="tableModalArrTypesRecipe"
+         aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form action="arrangement_type_recipe" method="post" id="arrangement_type_recipe_form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tableModalLabelArrTypeRecipe">Arrangement Type Recipe</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <label for="name" class="col-2">Name:</label>
+                        <input type="text" name="name" id="name" value="" required class="form-control col-7"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower1" class="col-2">Flower 1:</label>
+                        <select id="flower1" name="flower1" class="form-control col-4">
+                            <option selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="qty_flower1" class="col-2"># Flower 1:</label>
+                        <input type="number" name="qty_flower1" id="qty_flower1" value="0" class="form-control col-2"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower2" class="col-2">Flower 2:</label>
+                        <select id="flower2" name="flower2" class="form-control col-4">
+                            <option disabled selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="qty_flower2" class="col-2"># Flower 2:</label>
+                        <input type="number" name="qty_flower2" id="qty_flower2" value="0" class="form-control col-2"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower3" class="col-2">Flower 3:</label>
+                        <select id="flower3" name="flower3" class="form-control col-4">
+                            <option disabled selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="qty_flower3" class="col-2"># Flower 3:</label>
+                        <input type="number" name="qty_flower3" id="qty_flower3" value="0" class="form-control col-2"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower4" class="col-2">Flower 4:</label>
+                        <select id="flower4" name="flower4" class="form-control col-4">
+                            <option disabled selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="qty_flower4" class="col-2"># Flower 4:</label>
+                        <input type="number" name="qty_flower4" id="qty_flower4" value="0" class="form-control col-2"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower5" class="col-2">Flower 5:</label>
+                        <select id="flower5" name="flower5" class="form-control col-4">
+                            <option disabled selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="qty_flower5" class="col-2"># Flower 5:</label>
+                        <input type="number" name="qty_flower5" id="qty_flower5" value="0" class="form-control col-2"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower6" class="col-2">Flower 6:</label>
+                        <select id="flower6" name="flower6" class="form-control col-4">
+                            <option disabled selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="qty_flower6" class="col-2"># Flower 6:</label>
+                        <input type="number" name="qty_flower6" id="qty_flower6" value="0" class="form-control col-2"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower7" class="col-2">Flower 7:</label>
+                        <select id="flower7" name="flower7" class="form-control col-4">
+                            <option disabled selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="qty_flower7" class="col-2"># Flower 7:</label>
+                        <input type="number" name="qty_flower7" id="qty_flower7" value="0" class="form-control col-2"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower8" class="col-2">Flower 8:</label>
+                        <select id="flower8" name="flower8" class="form-control col-4">
+                            <option disabled selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="qty_flower8" class="col-2"># Flower 8:</label>
+                        <input type="number" name="qty_flower8" id="qty_flower8" value="0" class="form-control col-2"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="flower9" class="col-2">Flower 9:</label>
+                        <select id="flower9" name="flower9" class="form-control col-4">
+                            <option disabled selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="qty_flower9" class="col-2"># Flower 9:</label>
+                        <input type="number" name="qty_flower9" id="qty_flower9" value="0" class="form-control col-2"/>
+                    </div>                    
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="id" id="id"/>
+                    <input type="hidden" name="action" id="action" value="new"/>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btn-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $("#add_new_arr_type_recipe").on('click', function(){
+        $("#arrTypeRecipeModal").modal('show');
+    });
+    $('#arrTypeRecipeModal').on('hidden.bs.modal', function (e) {
+        $("#arrangement_type_recipe_form").trigger('reset');
+        $("#arrangement_type_recipe_form select").each(function(){
+            $(this).prop('selectedIndex', 0)
+        });
+    });
+    let fp_table = $('#arr_type_recipe_table').DataTable(
+        {
+            paging: false,
+            columnDefs: [
+                {
+                    targets: [0],
+                    visible: false,
+                    searchable: false
+                },
+                {
+                    targets: [1],
+                    className: 'text-nowrap'
+                }
+            ]
+        });
+    $('#arr_type_recipe_table tbody').on('click', 'td', function (e) {
+        row = fp_table.row(this)
+        var data = row.data();
+        if (data === undefined) {
+            // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+            var hiddenNode = $(this.parentNode).prev()[0].children[0];
+            data = yp_table.row(hiddenNode).data();
+        }
+        if (e.target.classList.contains('delete')) {
+            id = e.target.dataset.id
+            if(confirm("Are you sure to delete " + data[1] + "?")) {
+                $.ajax({
+                    url: "arrangement_type_recipe",
+                    type: "post",
+                    data: {
+                        action: "delete",
+                        id: id
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        row.remove().draw()
+                        alert("Arrangement Type Recipe "+ data[1] +" deleted successfully.");
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                    }
+                });
+            }
+            return true
+        }
+        if (e.target.classList.contains('edit')) {
+            $("#id").val(data[0])
+            $("#name").val(data[1])
+            if(data[2]!=""){
+                sel_value=$("#flower1 option").filter(function(){
+                    return this.text == data[2]
+                }).val();
+                $('#flower1').val(sel_value)
+            }
+            $("#qty_flower1").val(data[3])
+            if(data[4]!=""){
+                sel_value=$("#flower2 option").filter(function(){
+                    return this.text == data[4]
+                }).val();
+                $("#flower2").val(sel_value)
+            }
+            $("#qty_flower2").val(data[5])
+            if(data[6]!=""){
+                sel_value=$("#flower3 option").filter(function(){
+                    return this.text == data[6]
+                }).val();
+                $("#flower3").val(sel_value)
+            }
+            $("#qty_flower3").val(data[7])
+            if(data[8]!=""){
+                sel_value=$("#flower4 option").filter(function(){
+                    return this.text == data[8]
+                }).val();
+                $("#flower4").val(sel_value)
+            }
+            $("#qty_flower4").val(data[9])
+            if(data[10]!=""){
+                sel_value=$("#flower5 option").filter(function(){
+                    return this.text == data[10]
+                }).val();
+                $("#flower5").val(sel_value)
+            }
+            $("#qty_flower5").val(data[11])
+            if(data[12]!=""){
+                sel_value=$("#flower6 option").filter(function(){
+                    return this.text == data[12]
+                }).val();
+                $("#flower6").val(sel_value)
+            }
+            $("#qty_flower6").val(data[13])
+            if(data[14]!=""){
+                sel_value=$("#flower7 option").filter(function(){
+                    return this.text == data[14]
+                }).val();
+                $("#flower7").val(sel_value)
+            }
+            $("#qty_flower7").val(data[15])
+            if(data[16]!=""){
+                sel_value=$("#flower8 option").filter(function(){
+                    return this.text == data[16]
+                }).val();
+                $("#flower8").val(sel_value)
+            }
+            $("#qty_flower8").val(data[17])
+            if(data[18]!=""){
+                sel_value=$("#flower9 option").filter(function(){
+                    return this.text == data[18]
+                }).val();
+                $("#flower9").val(sel_value)
+            }
+            $("#qty_flower9").val(data[19])
+            $("#action").val("edit")
+            $("#tableModalLabelArrTypeRecipe").html("Edit arrangement type recipe");
+            $("#arrTypeRecipeModal").modal('show');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

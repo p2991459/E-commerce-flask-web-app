@@ -1,0 +1,365 @@
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    <style>
+ html,
+ body,
+ #map {
+   margin: 0;
+   width: 100%;
+   height: 600px;
+ }
+
+ #mapWrapper {
+   width: 100%;
+   height: 600px;
+ }
+
+ .leaflet-div-icon {
+	background: transparent;
+	border: none;
+}
+
+.leaflet-marker-icon .number{
+	position: relative;
+	top: -37px;
+	font-size: 12px;
+	width: 25px;
+	text-align: center;
+    font-weight: bold;
+    color: #000;
+}
+
+.leaflet-marker-icon .number-success{
+	position: relative;
+	top: -37px;
+	font-size: 12px;
+	text-align: center;
+    font-weight: bold;
+    color: #000;
+    background: #fff;
+    -moz-border-radius: 10px !important;
+    -webkit-border-radius: 100px;
+    border-radius: 10px;
+    width: 19px !important;
+    height: 19px !important;
+    margin-left: 3px;
+}
+
+.leaflet-marker-icon .number-failure{
+	position: relative;
+	top: -37px;
+	font-size: 12px;
+	width: 25px;
+	text-align: center;
+    font-weight: bold;
+    color: #941111;
+}
+
+.leaflet-div-icon {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+/*Legend specific*/
+.legend {
+  padding: 6px 8px;
+  font: 14px Arial, Helvetica, sans-serif;
+  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  line-height: 24px;
+  color: #555;
+}
+.legend h4 {
+  text-align: center;
+  font-size: 16px;
+  margin: 2px 12px 8px;
+  color: #777;
+}
+
+.legend span {
+  position: relative;
+  bottom: 3px;
+}
+
+.legend i {
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin: 0 8px 0 0;
+  opacity: 0.7;
+}
+
+	</style>
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Get a production sheet for a route</h1>
+    </div>
+
+    <button class="btn-outline-primary rounded" style="margin-bottom: 30px;"
+            id="refresh-routific-projects-list">Reload routific projects list
+    </button>
+
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-12 mb-8">
+
+            <!-- Project Card -->
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Select a
+                        routific project</h6>
+                </div>
+                <div class="card-body">
+                <form type="GET">
+                    <select name="routific-project-id"
+                            id="routific-project-id" class="form-control">
+                        {% for p in data.projects %}
+                            {% if p.routific_project_id == '5f5eeefcac034800172121f8' %}
+                                <option value="{{ p.routific_project_id }}">
+                                    DELIVER LATER
+                                </option>
+                            {% else %}
+                                <option value="{{ p.routific_project_id }}" {% if p.routific_project_id == routific_project_id and routific_project_id %} selected {% endif %}>{{ p.routific_project_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button id="btn-live-tracking-show"  class="btn btn-outline-dark mt-2">Show</button>
+                    <div id="leafletmap"></div>
+                      <div id="mapWrapper">
+                        <div id="map">
+
+                        </div>
+                      </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function(event) {
+            legend_data = [];
+
+            L.NumberedDivIcon = L.Icon.extend({
+                options: {
+                number: '',
+                shadowUrl: null,
+                iconSize: new L.Point(25, 41),
+                    iconAnchor: new L.Point(13, 41),
+                    popupAnchor: new L.Point(0, -33),
+                    /*
+                    iconAnchor: (Point)
+                    popupAnchor: (Point)
+                    */
+                    className: 'leaflet-div-icon'
+                },
+
+                createIcon: function () {
+                    var div = document.createElement('div');
+                    var img = this._createImg('{{ site_url }}/img/marker_'+this.options['color_counter']+'.png',);
+                    var numdiv = document.createElement('div');
+                    numdiv.setAttribute ( "class", "number" );
+                    numdiv.setAttribute ( "id", this.options['number_id'] );
+                    numdiv.innerHTML = this.options['number'];
+                    div.appendChild ( img );
+                    div.appendChild ( numdiv );
+                    this._setIconStyles(div, 'icon');
+                    return div;
+                },
+
+                //you could change this to add a shadow like in the normal marker if you really wanted
+                createShadow: function () {
+                    return null;
+                }
+            });
+
+            var map = new L.Map('map', {
+              center: new L.LatLng(41.7767166, -87.6468792),
+              zoom: 10
+            });
+
+            L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            function initData(visits, initMarkers=true) {
+              window.routes = visits;
+              if (initMarkers) {
+                  window.markers = {};
+              }
+              window.lastStopVisited = [];
+
+              var colors = ['red', 'blue', 'green', '#0090a7'];
+              routes.forEach(function(visits, i){
+                  if (initMarkers) {
+                      var data = [];
+                  }
+                  var maxDate = 0;
+                  var lastVisitedStopId = '';
+                  var driver = '';
+                  visits.forEach(function(visit, pi) {
+                      if (pi === 0) {
+                          driver = visit.location.name;
+
+                          // preparing for legend data
+                          legend_data.push({
+                            'name': driver,
+                            'color': colors[i]
+                            })
+                      }
+                      console.log(visit.location.name + ": " + pi)
+                      var lat = visit.location.lat;
+                      var lng = visit.location.lng;
+                      if (initMarkers) {
+                          data[pi] = [visit.location.lat, visit.location.lng];
+
+                          // check if we already have a marker at this location
+                          if (markers[lat + '-' + lng] === undefined) {
+
+                          } else {
+                              // we already have a marker at this place, adjust location a bit
+                              console.log("Original = " + lat + ", " + lng);
+                              lat += 0.001;
+                              lng += 0.001;
+                              console.log("Modified = " + lat + ", " + lng);
+                          }
+
+                          // initialize markers
+                          marker = L.marker([lat, lng], {
+                              icon: new L.NumberedDivIcon({number: pi, number_id: 'num_' + i + '_' + pi, color_counter: i+1})
+                          }).setBouncingOptions({
+                              exclusive: false,
+                              elastic: false
+                          }).on('click', function () {
+                              var deliveryTime = 0;
+                              var deliveryTimeStr = '';
+                              visit.log.forEach(function (l, li) {
+                                  if (l.status === "done") {
+                                      deliveryTime = l.date;
+                                      deliveryTimeStr = moment(deliveryTime).tz('America/Chicago').format('MM-DD-YYYY HH:mm');
+                                  }
+                              });
+                              if (deliveryTime === 0) {
+                                  deliveryTimeStr = '--';
+                              }
+                              alert(visit.location.name + '\n' + visit.location.address + '\n' +
+                                  'Delivered By: ' + driver + '\n' +
+                                  'Delivery Time: ' + deliveryTimeStr);
+                          }).addTo(map);
+                          window.markers[lat + '-' + lng] = marker;
+                      }
+
+                      if (visit.log.length > 0) {
+                            visit.log.forEach(function(l, li) {
+                                if(l.status === "done") {
+                                    var stopId = lat + '-' + lng;
+                                    currentStopArrivedAtDate = l.date;
+                                    if (currentStopArrivedAtDate > maxDate) {
+                                        maxDate = currentStopArrivedAtDate;
+                                        lastVisitedStopId = stopId;
+                                    } else {
+
+                                    }
+                                    // set the background to done
+                                    document.getElementById("num_" + i + "_" + pi).classList.remove("number");
+                                    document.getElementById("num_" + i + "_" + pi).classList.add("number-success");
+                                }
+                            });
+                      } else {
+                          console.log("Not yet visited " + visit)
+                      }
+                  });
+                  window.lastStopVisited[i] = {'maxDate': maxDate, 'lastVisitedStopId': lastVisitedStopId};
+                  if (initMarkers) {
+                      var polyline = L.polyline(data, {
+                          color: colors[i],
+                      }).addTo(map);
+                  }
+              });
+            }
+            initData({{ visits|tojson }});
+
+            function setMarkerAnimation() {
+                  // set older markers animation off
+                  Object.values(window.markers).forEach(function(m, mi) {
+                      m.stopBouncing();
+                  });
+                  // set only the chosen marker bouncing
+                  window.lastStopVisited.forEach(function(lsv, lsvi){
+                      if (lsv.lastVisitedStopId !== undefined && window.markers[lsv.lastVisitedStopId] !== undefined) {
+                          window.markers[lsv.lastVisitedStopId].bounce();
+                      } else {
+                          console.log("***");
+                          console.log("Unable to bounce because either lastVisitedStopId is undefined or marker is not found");
+                          if (lsv.lastVisitedStopId !== undefined){
+                              console.log("lsv.lastVisitedStopId = " + lsv.lastVisitedStopId);
+                          }
+                          if (window.markers[lsv.lastVisitedStopId] !== undefined) {
+                              console.log(" markers[lsv.lastVisitedStopId] = " +  window.markers[lsv.lastVisitedStopId]);
+                          }
+                          console.log("*************");
+                      }
+                  });
+            }
+            setMarkerAnimation();
+
+            /*Legend specific*/
+            var legend = L.control({ position: "topright" });
+
+            if (legend_data.length > 0){
+                legend.onAdd = function(map) {
+                    var div = L.DomUtil.create("div", "legend");
+                    div.innerHTML += "<h4>Driver(s)</h4>";
+                    legend_data.forEach(function(l, i) {
+                        distances = {{distances}}
+                        dist = distances[i]
+                        div.innerHTML += '<i style="background: '+ l.color +'"></i><span>'+ l.name +'</span> <span> ('+dist.toFixed(4)+' Miles)<br>';
+                    });
+
+                    return div;
+                };
+
+                legend.addTo(map);
+            }
+
+
+            {% if is_project_today %}
+                function refreshData() {
+                    console.log("In refreshData");
+                    $.ajax({
+                      url: site_url + "/routific/live-tracking",
+                      type: "get",
+                      beforeSend: function(xhr, settings) {
+                        console.log("making xhr");
+                        showProgressbar();
+                      },
+                      data: {
+                        'routific-project-id': document.getElementById("routific-project-id").value,
+                        'response-format': 'json'
+                      },
+                      success: function(response) {
+                        console.log(response);
+                        initData(response.visits, false);
+                        setMarkerAnimation();
+                      },
+                      error: function(xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                      },
+                      complete: function(xhr, textStatus) {
+                        console.log(textStatus);
+                        hideProgressbar();
+                      }
+                    });
+                }
+                var intervalId = window.setInterval(function(){
+                    refreshData();
+                }, 60000);
+
+            {% endif %}
+        });
+    </script>
+{% endblock %}

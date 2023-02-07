@@ -1,0 +1,63 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">My Ideas</h3>
+        <div class="box">
+            <form action="/employee-management/employee-ideas" method="post">
+            <input type="hidden" name="action_name" value="exportIdea">
+            <input type="submit" class="btn btn-outline-dark mt-1 pc-margin-bottom-30" value="Export Ideas">
+            </form>
+            <table class="table table-borderless" id="tbl-emp-idea">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Submitted By</th>
+                        <th>Submitted On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for idea, user in emp_ideas %}
+                    <tr>
+                        <td>
+                            {{ idea.title}}
+                        </td>
+                        <td>
+                            {{ idea.description | truncate(50, True, '...')}}
+                        </td>
+                        <td>
+                            {{ user.name }}
+                        </td>
+                        <td>
+                            {{ idea.submitted_on.strftime('%Y-%m-%d')}}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#tbl-emp-idea').DataTable({
+                paging: false,
+                responsive: true,
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 10001, targets: 1 },
+                ]
+            });
+        });
+    </script>
+
+{% endblock %}

@@ -1,0 +1,79 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">Maximum Capacities Calculations</h3>
+        <div class="box">
+            <table class="table table-bordered table-striped mt-5 ">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Terms</th>
+                        <th>Amount</th>
+                        <th>Unit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if term_n_amount_data: %}
+                    {% for row in term_n_amount_data: %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.amount }}</td>
+                        <td>{{ row.unit }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+
+            <table class="table table-bordered table-striped mt-5 ">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Kind of Shift</th>
+                        <th>Team size (4 Hr. Shift)</th>
+                        <th>Team size (8 Hr. Shift)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if shift_teamsize_data: %}
+                    {% for row in shift_teamsize_data: %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.four_hr_shift }}</td>
+                        <td>{{ row.eight_hr_shift }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+
+            <table class="table table-bordered table-striped mt-5 ">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Floral Arrangments</th>
+                        <th>Money Density ($/ft^3)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if flr_arrng_money_dens: %}
+                    {% for row in flr_arrng_money_dens: %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.value }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <br/>
+    <br/>
+{% endblock %}

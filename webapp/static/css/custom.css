@@ -1,0 +1,166 @@
+.componentWrapper {
+  border: solid royalblue;
+  border-radius: 4px;
+  padding: 15px 10px 10px;
+  margin: 40px;
+  border-width: 1px;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.componentWrapper .header {
+  position:absolute;
+  margin-top:-30px;
+  margin-left:10px;
+  color:white;
+  background:royalblue;
+  border-radius:10px;
+  padding:2px 10px;
+}
+
+
+#target_table{
+    margin: 30px 0 30px 0;
+}
+#routes_table td.left {
+    text-align: left;
+}
+
+#routes_table td {
+    text-align: center;
+}
+
+span.delivered {
+    background: limegreen;
+    width: 15px;
+    height: 15px;
+    float: left;
+    margin-right: 4px;
+    margin-top: 4px;
+}
+span.rescheduled {
+    background: saddlebrown;
+    width: 15px;
+    height: 15px;
+    float: left;
+    margin-right: 4px;
+    margin-top: 4px;
+}
+
+span.future-delivery {
+    background: yellow;
+    width: 15px;
+    height: 15px;
+    float: left;
+    margin-right: 4px;
+    margin-top: 4px;
+}
+
+span.undelivered {
+    background: red;
+    width: 15px;
+    height: 15px;
+    float: left;
+    margin-right: 4px;
+    margin-top: 4px;
+}
+
+.ul_delivery_dates {
+    padding: 0 !important;
+    list-style-type: none;
+}
+
+.inner_div {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 128px;
+}
+
+.inner_div_no_fix_width {
+    overflow: hidden;
+    /*white-space: nowrap;*/
+    padding: 0 10px;
+}
+
+
+    .pc-tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.pc-tooltip .pc-tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -60px;
+}
+
+.pc-tooltip:hover .pc-tooltiptext {
+  visibility: visible;
+}
+
+/* Sub Menu should be display over other content*/
+.sidebar .nav-item .collapse{
+  z-index: 2;
+}
+
+#modal_body img{
+  width: 100%;
+}
+
+.modal-dialog {
+  max-width: 800px;
+}
+
+@media only screen and (max-width: 700px) {
+    /*.navbar-nav .fas {
+      display: none;
+    }
+    .navbar-nav .fab {
+        display: none;
+      }
+    .sidebar-divider{
+        display: none;
+    }
+    .sidebar .nav-item .nav-link{
+        padding: 0.50rem 1rem;
+    }*/
+
+    .componentWrapper {
+      border: solid royalblue;
+      border-radius: 4px;
+      padding: 15px 10px 10px;
+      margin: 25px;
+      border-width: 1px;
+      display: block;
+      justify-content: space-evenly;
+    }
+  }
+
+  #events_table {
+    display: block;
+    height: 500px;
+    overflow-y: scroll !important;
+  }
+
+  #events_table thead{
+    top: 0;
+    position: sticky;
+    background: white;
+    z-index: 1000
+  }
+
+  .white_header_class th{
+    background: white;
+  }

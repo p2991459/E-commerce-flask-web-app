@@ -1,0 +1,131 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+{% block actual_content %}
+{% include "_tab_styles.html" %}
+    <!-- Page Heading -->
+    <style>
+        .hide_column {
+            display : none;
+        }
+    </style>
+    <div class="card shadow mb-8">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Youth Time Tracking</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <label for="day" title="Day" class="col-1">Day</label>
+                <input type="text" name="day" id="day" class="form-control col-2"/>
+                <label for="day" title="Day" class="col-1">Youth Partner</label>
+                <select id="youth_partner_id" name="youth_partner_id" class="form-control col-3">
+                    {% for youth_partner in youth_partners %}
+                        <option value="{{ youth_partner.id }}">{{ youth_partner.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" id="search_data" class="form-control btn-secondary col-1 ml-2">Search</button>
+            </div>
+            <form id="time_tracking_form" action="time_tracking" method="post">
+                <table class="table display responsive table-responsive table-bordered" width="100%"
+                        id="time_tracking_table">
+                    <thead>
+                        <th scope="col">ID</th>
+                        <th scope="col">Youth Partner ID</th>
+                        <th scope="col">Employee ID</th>
+                        <th scope="col">Day</th>
+                        <th scope="col">Youth Partner</th>
+                        <th scope="col">Employee Name</th>
+                        <th scope="col">Attendance</th>
+                        <th scope="col">Hours Worked</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            <div class="row">
+                <button type="submit" class="btn btn-primary ml-3">Save</button>
+            </div>
+            </form>
+        </div>        
+    </div>
+    <script>
+        $(document).ready(function () {
+            $("#day").datetimepicker({
+                defaultDate: new Date(),
+                formatDate: 'm-d-Y',
+                format:'m-d-Y',
+                timepicker: false
+            });
+            
+            var today = new Date();
+            month = (today.getMonth()+1).toString().padStart(2,"0")
+            day = (today.getDate()).toString().padStart(2,"0")
+            formattedDate = month+'-'+day+'-'+today.getFullYear()
+            $("#day").val(formattedDate);
+            $("#hours_worked").val(0.0)
+            
+            let tt_table = $("#time_tracking_table").DataTable({
+                searching: false,
+                info: false,
+                paging: false,
+                responsive: true,
+                columnDefs: [
+                    {
+                        targets: [0,1,2],
+                        class: "hide_column",
+                        searchable: false
+                    }
+                ]
+            });
+
+            function addrow(row, index){
+                id = "<input type=hidden id=id_"+index+" name=tracking_id_"+index+" value="+row['time_tracking_id']+" />"
+                youth_partner_id = "<input type=hidden id=youth_partner_id_"+index+" name=youth_partner_id_"+index+" value="+row['youth_partner_id']+" />"
+                youth_employee_id = "<input type=hidden id=youth_employee_id_"+index+" name=youth_employee_id_"+index+" value="+row['youth_employee_id']+" />"
+                youth_partner_name = row['name']
+                youth_employee_name = row['first_name']+","+row['last_name']
+                attendanceElement = document.createElement("select")
+                attendanceElement.name="attendance_"+index
+                var optionList = ["Present", "Late", "Not Scheduled", "Unexecused Leave"]
+                var optionValueList = ["P","L","NS","U"]
+                for(i=0;i<4;i++){
+                    optionElement = document.createElement("option");
+                    optionElement.setAttribute("value", optionValueList[i])
+                    optionElement.text = optionList[i]
+                    if(row['attendance']==optionValueList[i]){
+                        optionElement.setAttribute("selected", true)
+                    }
+                    attendanceElement.appendChild(optionElement)
+                }
+                hours_worked = "<input type=text id=hours_worked_"+index+" name=hours_worked_"+index+" value="+row['hours_worked']+" />"
+                day = "<input type=text style='width: 150px;' id=day_"+index+" name= day_"+index+" value="+row['day']+" readonly />"
+                tt_table.row.add([id,youth_partner_id,youth_employee_id,day,youth_partner_name,youth_employee_name,attendanceElement.outerHTML,hours_worked]).draw()
+            }
+
+            $("#search_data").on('click', function(e){
+                $.ajax({
+                    url: "get_time_tracking",
+                    type: "get",
+                    data: {
+                        day: $("#day").val(),
+                        youth_partner_id: $("#youth_partner_id").val()
+                    },                 
+                    success: function (response) {
+                        tt_table.clear().draw();
+                        counter = 0
+                        response.forEach(function(obj){
+                            counter = counter + 1
+                            addrow(obj, counter)
+                        })
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        
+                    }
+                });
+            })
+        });
+    </script>
+{% endblock %}

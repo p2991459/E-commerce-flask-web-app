@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Volunteer Event Detail</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="{{ site_url }}/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="{{ site_url }}/css/sb-admin-2.min.css" rel="stylesheet">
+    <style>
+        form.user .form-control-user{
+            font-size: 1.0rem;
+        }
+    </style>
+
+</head>
+
+<body class="bg-gradient-primary">
+
+    <div class="container-fluid">
+        <div class="card o-hidden border-0 shadow-lg my-4">
+            <div class="card-body">
+                <h3 class="title">Volunteer Event Details</h3>
+                <hr>
+                <div class="box">
+                    <div class="row mb-0">
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Date & Time: 
+                                </div>
+                                <div class="col-md-7">
+                                    {{volunteer_events.vday_date}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Subscribers: 
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_subscribers | length }}/{{ volunteer_events.no_of_volunteer }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="row justify-content-end">
+                                <div class="col-md-7">
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input id="invite_link" type="text" value="{{ site_url }}/signup_volunteer_day/{{ volunteer_events.uuid}}" readonly>
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-primary" type="button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row small mb-2">
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Site Location:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.site_location }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Event Type:
+                                </div>
+                                <div class="col-md-7">
+                                    {% if volunteer_events.event_type == 'OP' %}
+                                    Open
+                                    {% elif volunteer_events.event_type == 'BO' %}
+                                    By Organisation
+                                    {% elif volunteer_events.event_type == 'YG' %}
+                                    Youth Group
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Youth Group E-Mail:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.youth_email }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row small mb-2">
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Group Name:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.group_name }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Group Phone No.: 
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.group_phone_number }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Group E-Mail:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.group_email }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row small mb-2">
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Site Manager:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.sm_name }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Site Manager Phone:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.sm_phone_number }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Site Manager E-Mail:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.sm_email }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row small mb-2">
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Organization Name:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.org_name }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Organization Contact:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.org_contact }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Organization E-Mail:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.org_email }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row small mb-2">
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Organization Phone:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.org_phone_number }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Organization Website:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.org_website }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-5 font-weight-bold">
+                                    Notes:
+                                </div>
+                                <div class="col-md-7">
+                                    {{ volunteer_events.notes }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="title mt-5">Subscriber List</h5>
+                    <table class="table table-borderless">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Contact</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subs in volunteer_subscribers %}
+                            <tr>
+                                <td>{{ subs.name }}</td>
+                                <td>{{ subs.email }}</td>
+                                <td>{{ subs.contact }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; Southside Blooms</span>
+                </div>
+            </div>
+        </footer>
+        <!-- End of Footer -->
+    </div>
+
+    <script src="{{ site_url }}/vendor/jquery/jquery.min.js"></script>
+    <script>
+        function copyToClipboard(elem) {
+            var $inv_link = $('#invite_link').val();
+            $('#invite_link').select();
+            navigator.clipboard.writeText($inv_link).then(function() {
+                var originalText = elem.innerText;
+                console.log(originalText)
+                elem.innerText = 'Copied!';
+                setTimeout(function(){
+                    elem.innerText = originalText;
+                }, 1000);
+            }, function() {
+                elem.style.cssText = "background-color: var(--red);";
+                elem.innerText = 'Error';
+            });
+        }
+    </script>
+</body>
+
+</html>
+
+
+

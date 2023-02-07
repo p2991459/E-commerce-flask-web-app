@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Volunteer Day-Sign Up</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="{{ site_url }}/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="{{ site_url }}/css/sb-admin-2.min.css" rel="stylesheet">
+    <style>
+        form.user .form-control-user{
+            font-size: 1.0rem;
+        }
+    </style>
+
+</head>
+
+<body class="bg-gradient-primary">
+
+    <div class="container">
+        {% for mess in get_flashed_messages()  %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" class="fade close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        {{mess}}
+        </div>
+        {% endfor %}
+        {% if event_not_exists %}
+        <div class="card o-hidden border-0 shadow-lg my-5">
+            <h3 style="text-align: center;">This link is either removed or does not exists. Please contact administrator.</h3>
+        </div>
+        {% else %}
+        <div class="card o-hidden border-0 shadow-lg my-5">
+            <div class="card-body p-0">
+                <!-- Nested Row within Card Body -->
+                <div class="row">
+                    <!-- Content Column -->
+                    <div class="col-lg-5">
+                        <!-- Project Card -->
+                        <div class="card shadow">
+                            <div class="card-header py-6">
+                                <h6 class="m-0 font-weight-bold text-primary">Volunteer Day Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="pc-input-field" style="color:black">
+                                    <dl class="row">
+                                        <dt class="col-sm-6">Date</dt>
+                                        <dd class="col-sm-6">{{ vol_event.vday_date | format_vol_day_datetime }}</dd>
+                                    </dl>
+                                    <hr/>
+                                    <dl class="row">
+                                        <dt class="col-sm-6">Site Location</dt>
+                                        <dd class="col-sm-6">{{ vol_event.site_location }}</dd>
+                                    </dl>
+                                    <hr/>
+                                    <dl class="row">
+                                        <dt class="col-sm-6">Max. No. Of. Volunteer</dt>
+                                        <dd class="col-sm-6">{{ vol_event.no_of_volunteer }}</dd>                                    
+                                    </dl>
+                                    <hr/>
+                                    <dl class="row">
+                                        <dt class="col-sm-6">Tasks</dt>
+                                        <dd class="col-sm-6">{{ vol_event.tasks }}</dd>
+                                    </dl>
+                                    <hr/>
+                                    <dl class="row">
+                                        <dt class="col-sm-6">No. Of Volunteer Signed Up</dt>
+                                        <dd class="col-sm-6">{{ no_of_subscription }}</dd>                                    
+                                    </dl>
+                                    <hr/>
+                                    <dl class="row">
+                                        <dt class="col-sm-6">Site Contact Name</dt>
+                                        <dd class="col-sm-6">{{ vol_event.sm_name }}</dd>                                    
+                                    </dl>
+                                    <hr/>
+                                    <dl class="row">
+                                        <dt class="col-sm-6">Site Contact Phone Number</dt>
+                                        <dd class="col-sm-6">{{ vol_event.sm_phone_number }}</dd>                                    
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="p-5 align-middle">
+                            {% if is_event_expired %}
+                            <div style="text-align: center;color: red;">
+                                <h5>
+                                    Hello, 
+                                        <br/><br/>
+                                        Thank you for your interest in volunteering with Southside Blooms!
+                                         Unfortunately, this volunteer opportunity is not available anymore. 
+                                         <br/>
+                                         Please consider another volunteer date that still has available slots.
+                                         <br/><br/>
+                                         Thank You!
+                                         <br>
+                                         The Southside Blooms Team
+                                </h5>
+                            </div>
+                            {% elif vol_event.no_of_volunteer == no_of_subscription %}
+                                <div style="text-align: center;color: red;">
+                                    <h5>
+                                        Hello, 
+                                        <br/><br/>
+                                        Thank you for your interest in volunteering with Southside Blooms!
+                                         Unfortunately, this volunteer opportunity is full and we cannot add new 
+                                         volunteers at this time. <br/>Please consider another volunteer date that still has available slots.
+                                         <br/><br/>
+                                         Thank You!
+                                         <br>
+                                         The Southside Blooms Team
+                                    </h5>
+                                </div>
+                            
+                            {% else %}
+                            <div class="text-center">
+                                <h1 class="h4 text-gray-900 mb-4">Sign Up!</h1>
+                            </div>
+                            <form class="user" id="vol_detail" method="post" action="/volunteer_detail" role="form">
+                                <input type="hidden" name="vol_day_id" id="vol_day_id" value="{{ vol_event.id }}">
+                                <input type="hidden" name="uuid" id="uuid" value="{{ vol_event.uuid }}">
+                                <div class="form-group ">
+                                    <input type="text" class="form-control form-control-user" id="name" name="name"
+                                            placeholder="Name" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="email" class="form-control form-control-user" id="email" name="email"
+                                        placeholder="Email Address" required>
+                                </div>
+                                <div class="form-group ">
+                                    <input type="text" class="form-control form-control-user" id="contact" name="contact"
+                                            placeholder="Contact Number" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-user btn-block">
+                                    Sign Up
+                                </button>
+                                <hr>
+                                
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; Southside Blooms</span>
+                </div>
+            </div>
+        </footer>
+        <!-- End of Footer -->
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ site_url }}/vendor/jquery/jquery.min.js"></script>
+    <script src="{{ site_url }}/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ site_url }}/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ site_url }}/js/sb-admin-2.min.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,227 @@
+<style>
+    .create-new-zone {
+  position: fixed;
+  right: 4rem;
+  bottom: 1rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  text-align: center;
+  color: #fff;
+  background: rgba(90, 92, 105, 0.5);
+  line-height: 46px;
+}
+.create-new-zone:focus, .create-new-zone:hover {
+  color: white;
+}
+
+.create-new-zone:hover {
+  background: #5a5c69;
+}
+
+.create-new-zone i {
+  font-weight: 800;
+}
+</style>
+{% if 'delivery_dates' in request.url %}
+<a class="rounded create-new-zone" href="javascript:void(0);" id="create_new_zone">
+    <i class="fas fa-plus"></i>
+</a>
+{% endif %}
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-primary" href="{{ site_url }}/logout">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap core JavaScript-->
+<script src="{{ site_url }}/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Core plugin JavaScript-->
+
+<script src="{{ site_url }}/jquery-ui.js"></script>
+<script src="{{ site_url }}/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="{{ site_url }}/js/sb-admin-2.js"></script>
+
+{% if 'chart' in request.url %}
+    <!-- Page level plugins -->
+    <script src="{{ site_url }}/vendor/chart.js/Chart.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="{{ site_url }}/js/demo/chart-area-demo.js"></script>
+    <script src="{{ site_url }}/js/demo/chart-pie-demo.js"></script>
+{% endif %}
+<script src="{{ site_url }}/js/ssb.js"></script>
+
+{% if 'data' in request.url  or 'routific/update-project' in request.url or 'delivery_dates' in request.url or 'operationalmetrics' in request.url or 'flower_properties' in request.url or 'arrangement_type_recipe' in request.url or 'storage' in request.url or 'vehicle' in request.url
+or '/subscription-management' in request.url %}
+    <!-- Page level plugins -->
+    <script src="{{ site_url }}/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="{{ site_url }}/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+    <script src="{{ site_url }}/vendor/datatables/dataTables.responsive.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="{{ site_url }}/js/demo/datatables-demo.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.dataTables.min.css">
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+{% endif %}
+
+{% if 'delivery_dates' in request.url %}
+    <script src="{{ site_url }}/vendor/datatables/dataTables.responsive.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            loadZoneZipsDataTable();
+            loadDeliveryDatesDataTable();
+        });
+    </script>
+{% endif %}
+
+    <script src="{{ site_url }}/vendor/chart.js/Chart.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="{{ site_url }}/js/demo/chart-area-demo.js"></script>
+{#    <script src="{{ site_url }}/js/demo/chart-pie-demo.js"></script>#}
+
+{% if '/events' in request.url %}
+    <script src="{{ site_url }}/js/ckeditor.js"></script>
+{% endif %}
+{% if 'planProject' in request.url or request.url == site_url or request.url == site_url + "/" 
+        or '/events' in request.url  or 'grants' in request.url 
+        or 'calculator_base' in request.url or '/employee-management/' in request.url
+        or '/emp/' in request.url or '/email_outreach/' in request.url 
+        or '/presentations' in request.url or '/outreach_contacts' in request.url %}
+    <script src="{{ site_url }}/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="{{ site_url }}/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+    <script src="{{ site_url }}/vendor/datatables/dataTables.responsive.min.js"></script>
+
+
+    <!-- Page level custom scripts -->
+    <script src="{{ site_url }}/js/demo/datatables-demo.js"></script>
+
+    <script>
+        $(document).ready(function(){
+            loadManualPlansTable();
+        });
+    </script>
+{% endif %}
+
+{% if 'planProject' in request.url %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.dataTables.min.css">
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+{% endif %}
+
+{% if 'live-tracking' in request.url %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+      crossorigin="anonymous"/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin="anonymous"></script>
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/gh/hosuaby/Leaflet.SmoothMarkerBouncing@v2.0.0/dist/bundle.js"
+        crossorigin="anonymous"></script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone.min.js"
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endif %}
+{% if 'volunteer_days_management' in request.url or 'volunteer_events' in request.url or 
+'vehicle_request' in request.url or 'outreach_contacts' in request.url or '/master_calendar' in request.url %}
+    <script src="{{ site_url }}/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="{{ site_url }}/vendor/fullcalendar/main.min.js"></script>
+    <script src="{{ site_url }}/vendor/datetimepicker/jquery.datetimepicker.full.min.js"></script>
+{% endif %}
+{% if '/events' in request.url or '/presentations' in request.url or '/canvass_route_contacts' in request.url %}
+    <script src="{{ site_url }}/js/double-scroll.js"></script>
+    <script src="{{ site_url }}/vendor/datatables/dataTables.fixedColumns.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ site_url }}/vendor/datatables/fixedColumns.dataTables.min.css">
+    <script src="{{ site_url }}/vendor/datetimepicker/jquery.datetimepicker.full.min.js"></script>
+{% endif %}
+{% if 'youth_roster' in request.url or 'time_tracking' in request.url or 'youth_reports' in request.url or '/presentation' in request.url or '/outreach_contacts' in request.url %}
+    <script src="{{ site_url }}/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="{{ site_url }}/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+    <script src="{{ site_url }}/vendor/datetimepicker/jquery.datetimepicker.full.min.js"></script>
+{% endif %}
+<script src="{{ site_url }}/js/require.js"></script>
+<script>
+    window.site_url = "{{ site_url }}";
+    {% if bom and bom.selected_product %}
+    window.selected_product = "{{ bom.selected_product }}";
+    {% endif %}
+    {% if bar_chart_labels %}
+    window.barChartLabels = cleanArrayResponse("{{ bar_chart_labels }}");
+    {% endif %}
+    {% if bar_chart_data %}
+    window.barChartData = cleanArrayResponse("{{ bar_chart_data }}", true);
+    {% endif %}
+    {% if monthly_revenue_data %}
+    window.monthlyRevenueData = cleanArrayResponse("{{ monthly_revenue_data }}", true);
+    {% endif %}
+    {% if routific_stats_labels %}
+    window.routificStatsLabels = cleanArrayResponse("{{ routific_stats_labels }}");
+    {% endif %}
+    {% if num_projects_data %}
+    window.numProjectsData = cleanArrayResponse("{{ num_projects_data }}", true);
+    {% endif %}
+    {% if visit_count_data %}
+    window.visitCountData = cleanArrayResponse("{{ visit_count_data }}", false, true);
+    {% endif %}
+    {% if success_rate_data %}
+    window.successRateData = cleanArrayResponse("{{ success_rate_data }}", false, true);
+    {% endif %}
+    {% if distance_data %}
+    window.distanceData = cleanArrayResponse("{{ distance_data }}", false, true);
+    {% endif %}
+    {% if working_time_data %}
+    window.workingTimeData = cleanArrayResponse("{{ working_time_data }}", false, true);
+    {% endif %}
+
+    {% if pie_chart_data %}
+        window.pie_chart_data = "{{ pie_chart_data }}";
+        window.pie_chart_labels = cleanArrayResponse("{{ pie_chart_data.labels }}");
+        window.pie_chart_values = cleanArrayResponse("{{ pie_chart_data.data }}", true, false);
+    {% endif %}
+
+    {% if customer_satisfaction_qas %}
+        /*
+        {#window.customer_satisfaction_qas = [#}
+        {#    {"question": "How satisfied were you with the product quality (i.e. vase life, appearance, etc.)?",#}
+        {#    "responses": [{"key": "Very satisfied", "val": 40}, {"key": "Satisfied", "val": 27}, {"key": "Unsatisfied", "val": 9}, {"key": "Very unsatisfied", "val": 0}]},#}
+        {#    {"question": "How satisfied were you with your delivery experience (i.e. communication about deliveries, driver professionalism, etc.)?",#}
+        {#    "responses": [{"key": "Very satisfied", "val": 27}, {"key": "Satisfied", "val": 40}, {"key": "Unsatisfied", "val": 0}, {"key": "Very unsatisfied", "val": 9}]},#}
+        {#    {"question": "How satisfied were you with the customer service experience (responsiveness to emails, overall communication, etc.)?",#}
+        {#    "responses": [{"key": "Very satisfied", "val": 9}, {"key": "Satisfied", "val": 40}, {"key": "Unsatisfied", "val": 27}, {"key": "Very unsatisfied", "val": 0}]},#}
+        {#    {"question": "How likely are you to sign up for the 2022 flower CSA?",#}
+        {#    "responses": [{"key": "Definitely signing up!", "val": 40}, {"key": "Maybe will sign up", "val": 9}, {"key": "Not signing up", "val": 0}, {"key": "I hated it. Please don't talk to me about your flower CSA ever again!", "val": 27}]}#}
+        {#];#}
+        */
+        window.customer_satisfaction_qas = JSON.parse('{{ customer_satisfaction_qas|tojson|safe }}');
+        console.log(window.customer_satisfaction_qas);
+    {% endif %}
+    createCustomerSatisfactionPieChart();
+</script>

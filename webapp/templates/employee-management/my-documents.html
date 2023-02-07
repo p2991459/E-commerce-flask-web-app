@@ -1,0 +1,339 @@
+<!-- templates/my-documents.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">My Documents</h3>
+        <div class="box">
+            <table class="table table-borderless" id="tbl-my-doc">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Document Name</th>
+                        <th>Submitted Status</th>
+                        <th>Submit</th>
+                        <th>Preview Submitted</th>
+                        <th>Delete Sumitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in employement_doc_list %}
+                    <tr>
+                        <td>
+                            {{ doc.doc_name }}
+                        </td>
+                        <td>
+                            {% if doc.id in submitted_doc_ids %}
+                            <p class="text-success"> Submitted </p>
+                            {% else %}
+                            <p class="text-danger"> Pending </p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.id in submitted_doc_ids %}
+                            -
+                            {% else %}
+                              <button type="button" class="btn btn-info pdfTron-launch" data-file="{{ doc.file_name }}" data-id="{{ doc.id }}" data-name="{{ doc.doc_name }}">Submit form</button>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.id in submitted_doc_ids %}
+                            <a href="/upload/employee_data/{{ current_user.id }}/employment_docs/{{ doc.file_name }}?v={{ range(1, 51) | random }}" target="_blank">
+                                <i class="fa fa-eye"></i>
+                            </a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.id in submitted_doc_ids %}
+                            <a class="delete" onclick="deleteDoc({{doc.id}}, '{{doc.doc_name}}', 'delete_employment')">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <hr>
+
+        <h5 class="title">Additional Documents</h5>
+        <div class="box">
+            <button id="btn-add-custom-doc" class="btn btn-outline-dark mt-1 pc-margin-bottom-30"  data-toggle="modal" data-target="#tableModalAddDoc">Upload Document</button>
+            <table class="table table-borderless">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Document Name</th>
+                        <th>Preview</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in additional_doc_list %}
+                    <tr class="text-center">
+                        <td class="text-left">
+                            {{ doc.doc_name }}
+                        </td>
+                        <td>
+                            <a href="/upload/employee_data/{{ current_user.id }}/additional_docs/{{ doc.doc_file }}?v={{ range(1, 51) | random }}" target="_blank">
+                                <i class="fa fa-eye"></i>
+                            </a>
+                        </td>
+                        <td>
+                            <a class="delete" onclick="deleteDoc({{doc.id}}, '{{doc.doc_name}}', 'delete_additional')">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tableModalAddDoc" tabindex="-1" role="dialog" aria-labelledby="tableModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog pc-maxwidth-600" role="document">
+            <div class="modal-content">
+                <form action="/emp/my-doc" enctype="multipart/form-data" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tableModalLabel">Upload Additional Doc</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table-responsive">
+                            <tr>
+                                <td><label for="doc_name">Document Name:</label></td>
+                                <td><input type="text" name="doc_name" id="doc_name" required value=""/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="doc_file">Upload Doc:</label></td>
+                                <td><input type="file" name="doc_file" id="doc_file" required></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="my_doc_action" id="my_doc_action" value="additional_doc"/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-emplmnt-doc">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="fillPdf-modal" tabindex="-1" role="dialog" aria-labelledby="tableModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" style="min-width:98%;">
+            <div class="modal-content" >
+               <div class="modal-body" id="pdfTron-body" style=' height: 700px;'>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src='{{ site_url }}/pdftron/lib/webviewer.min.js'></script>
+    <script>
+        function deleteDoc(id, name, type) {
+              if (confirm("Are you sure to delete row \"" + name + "\" with ID " + id + "?")) {
+                  $.ajax({
+                    url: "/emp/my-doc",
+                    type: "post",
+                    beforeSend: function (xhr, settings) {
+                        console.log("Going to delete " + id);
+                        $("#loadingImage").show();
+                    },
+                    data: {
+                        my_doc_action: type,
+                        doc_id: id
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        alert(response.message);
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                        $("#loadingImage").hide();
+                        window.location = window.location.href;
+                    }
+                  });
+              }
+          }
+
+    $(document).ready(function () {
+        $('#tbl-my-doc').DataTable({
+            paging: false,
+            responsive: true,
+        });
+
+        doc_path = '/upload/employment_forms/'
+
+        WebViewer({
+            path: '{{ site_url }}/pdftron/lib',
+            licenseKey: 'Insert commercial license key here after purchase',
+        }, document.getElementById('pdfTron-body'))
+        .then(instance => {
+
+            $('body').on('click', '.pdfTron-launch', function (argument) {
+                file_name = this.dataset.file
+                doc_id = this.dataset.id
+                doc_name = this.dataset.name
+                doc_name = doc_name.trim()
+                file_url = doc_path + file_name
+                random_ver = (""+Math.random()).substring(2,7)
+                instance.UI.loadDocument(file_url + '?v=' + random_ver);
+                documentViewer.setDocumentXFDFRetriever(async () => {
+                  // load the annotation data
+                  const response = await fetch('{{ site_url }}/upload/employment_forms/xml/'
+                    + doc_name.split(' ').join('_') + '.xml' + '?v=' + random_ver
+                    );
+                  const xfdfString = await response.text();
+                  return xfdfString;
+                });
+                $("#fillPdf-modal").modal('show');
+            });
+
+            const { documentViewer, annotationManager } = instance.Core;
+            annotPosition = 0
+
+            const Tools = instance.Core.Tools;
+            const Annotations = instance.Core.Annotations;
+
+            instance.UI.disableElements([ 
+                'ribbons',
+                'leftPanel',
+                'leftPanelButton',
+                'panToolButton',
+                'selectToolButton',
+                'toolbarGroup-View',
+                'toolbarGroup-Edit',
+                'toolbarGroup-Annotate',
+                'toolbarGroup-Shapes',
+                'toolbarGroup-Insert',
+                'toolbarGroup-Measure',
+                'toolbarGroup-Forms',
+                'toolbarGroup-FillAndSign',
+                'AnnotationCreateFreeText',
+                'toggleNotesButton',
+                'viewControlsButton',
+                'toolsHeader',
+                'languageButton',
+            ]);            
+
+            const nextField = () => {
+                let annots = annotationManager.getAnnotationsList();
+                if (annots[annotPosition]) {
+                    annotationManager.jumpToAnnotation(annots[annotPosition]);
+                    if (annots[annotPosition + 1]) {
+                        annotPosition += 1;
+                    }
+                }
+            }
+
+            const prevField = () => {
+                let annots = annotationManager.getAnnotationsList();
+                if (annots[annotPosition]) {
+                    annotationManager.jumpToAnnotation(annots[annotPosition]);
+                    if (annots[annotPosition - 1]) {
+                        annotPosition -= 1;
+                    }
+                }
+            }
+
+            instance.UI.setHeaderItems(header => {
+                header.push({
+                    type: 'actionButton',
+                    img: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M352 352c-8.188 0-16.38-3.125-22.62-9.375L192 205.3l-137.4 137.4c-12.5 12.5-32.75 12.5-45.25 0s-12.5-32.75 0-45.25l160-160c12.5-12.5 32.75-12.5 45.25 0l160 160c12.5 12.5 12.5 32.75 0 45.25C368.4 348.9 360.2 352 352 352z"/></svg>',
+                    text: 'Previous Field',
+                    onClick: async () => {
+                        prevField()
+                    }
+                });
+            });
+            instance.UI.setHeaderItems(header => {
+                header.push({
+                    type: 'actionButton',
+                    img: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M192 384c-8.188 0-16.38-3.125-22.62-9.375l-160-160c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L192 306.8l137.4-137.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-160 160C208.4 380.9 200.2 384 192 384z"/></svg>',
+                    text: 'Next Field',
+                    onClick: async () => {
+                        nextField()
+                        
+                    }
+                });
+            });
+
+            instance.UI.setHeaderItems(header => {
+                header.push({
+                    type: 'actionButton',
+                    img: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>',
+                    onClick: async () => {
+                        documentViewer.getAnnotationsLoadedPromise().then( async () => {
+                            fieldManager = annotationManager.getFieldManager();
+                            if (!fieldManager.areRequiredFieldsFilled()) {
+                                alert('Please fill required fields.')
+                                return false;
+                            } else {
+                                const doc = documentViewer.getDocument();
+                                const xfdfString = await annotationManager.exportAnnotations();
+                                const options = { xfdfString, flatten: true };
+                                const data = await doc.getFileData(options);
+                                const arr = new Uint8Array(data);
+                                const blob = new Blob([arr], {
+                                    type: 'application/pdf'
+                                });
+                                const anntXml = new Blob([xfdfString], {
+                                    type: 'application/xml'
+                                });
+                                
+                                const preparedData = new FormData();
+                                preparedData.append('doc_id', doc_id);
+                                preparedData.append('my_doc_action', 'submit_employment');
+                                preparedData.append('doc_name', doc_name);
+                                preparedData.append('doc_file', blob, file_name);
+                                
+                                preparedData.append('is_ajax', 1);
+                                const req = new XMLHttpRequest();
+                                req.open("POST", '/emp/my-doc', true);
+                                req.responseType = 'json';
+                                req.onload = function (oEvent) {
+                                    console.log(oEvent.target.status)
+                                    if (oEvent.target.status == 200) {
+                                        $("#fillPdf-modal").modal('hide');
+                                        window.location = window.location.href;
+                                    } else {
+                                        alert('Error: ' +oEvent.target.response.message)
+                                    }
+                                };
+                                req.send(preparedData);
+                            }
+                        });
+                    }
+                });
+            });
+
+            documentViewer.addEventListener('documentLoaded', () => {
+                
+            });
+        });
+
+    });
+  </script>
+{% endblock %}

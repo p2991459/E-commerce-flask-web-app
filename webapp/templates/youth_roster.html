@@ -1,0 +1,640 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+{% block actual_content %}
+{% include "_tab_styles.html" %}
+    <!-- Page Heading -->
+    <div class="card shadow mb-8">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Youth Roster</h6>
+        </div>
+        <div class="card-body">
+            <button id="btn-add-youth-roster" class="btn btn-outline-dark mt-1 mb-xl-1">Add Youth Roster</button>
+            <button id="btn-add-team-manager" class="btn btn-outline-dark mt-1 mb-xl-1">Add Team Manager</button>
+            <button id="btn-add-youth-partner" class="btn btn-outline-dark mt-1 mb-xl-1">Add Youth Partner</button>
+            
+            <div class="tabs">
+                <ul class="tabs-list">
+                    <li class="{% if current_tab == 'youth_employee' %} active {% endif %}"><a href="#youth_roster">Youth Roster</a></li>
+                    <li class="{% if current_tab == 'team_management' %} active {% endif %}"><a href="#team_management">Team Management</a></li>
+                    <li class="{% if current_tab == 'youth_partner' %} active {% endif %}"><a href="#youth_partner">Youth Partner</a></li>
+                </ul>
+                <div class="tab {% if current_tab == 'youth_partner' %} active {% endif %}" id="youth_partner">
+                    <div class="col-sm-12 pc-input-field">
+                        <div class="table-responsive" id="youth_partner_div"></div>
+                        {% if youth_partners %}
+                            <div class="column is-8 is-offset-2">
+                                <h3 class="title">Youth Partners</h3>
+                                <div class="">
+                                    <table class="table display responsive table-responsive table-bordered"
+                                           style="width: 100%;" id="youth_partner_table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th>ID</th>
+                                            <th scope="col">Youth Partner Name</th>
+                                            <th scope="col">Billing Rate</th>
+                                            <th scope="col">Billed By Partner</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for youth_partner in youth_partners %}
+                                            <tr>
+                                                <td>{{ loop.index }}</td>
+                                                <td>{{ youth_partner.id }}</td>
+                                                <td>{{ youth_partner.name }}</td>
+                                                <td>{{ youth_partner.billing_rate }}</td>
+                                                {% if youth_partner.is_billed_by_partner %}
+                                                    <td>YES</td>
+                                                {% else %}
+                                                    <td>NO</td>
+                                                {% endif %}
+                                                <td><a class="edit" href="#"
+                                                       data-id="{{ youth_partner.id }}" data-handled_by="{{ youth_partner.id }}" >✎ </a>&nbsp;
+                                                    <a class="delete" href="#"
+                                                       data-id="{{ youth_partner.id }}" data-handled_by="{{ youth_partner.id }}">x</a></td>
+                                            </tr>
+                                        {% endfor %}</tbody>
+                                        <tfoot>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th>ID</th>
+                                            <th scope="col">Youth Partner Name</th>
+                                            <th scope="col">Billing Rate</th>
+                                            <th scope="col">Billed By Partner</th>                                            
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div>No Youth Partners</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="tab {% if current_tab == 'team_management' %}active{% endif %}" id="team_management">
+                    <div class="col-sm-12 pc-input-field">
+                        <div class="table-responsive" id="team_management_div"></div>
+                        {% if team_managers %}
+                            <div class="column is-8 is-offset-2">
+                                <h3 class="title">Team Managers</h3>
+                                <div class="">
+                                    <table class="table display responsive table-responsive table-bordered"
+                                           style="width: 100%;" id="team_manager_table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">Youth Partner ID</th>
+                                            <th scope="col">Youth Partner</th>
+                                            <th scope="col">First Name</th>
+                                            <th scope="col">Last Name</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">E-Mail</th>
+                                            <th scope="col">Position</th>
+                                            <th scope="col">Notes</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for team_manager in team_managers %}
+                                                <tr>
+                                                    <td>{{ loop.index }}</td>
+                                                    <td>{{ team_manager.id }}</td>
+                                                    <td>{{ team_manager.youth_partner.id }}</td>
+                                                    <td>{{ team_manager.youth_partner.name }}</td>
+                                                    <td>{{ team_manager.first_name }}</td>
+                                                    <td>{{ team_manager.last_name }}</td>
+                                                    <td>{{ team_manager.phone }}</td>
+                                                    <td>{{ team_manager.email }}</td>
+                                                    <td>{{ team_manager.position }}</td>
+                                                    <td>{{ team_manager.notes }}</td>
+                                                    <td><a class="edit" href="#"
+                                                           data-id="{{ team_manager.id }}" data-handled_by="{{ team_manager.id }}" >✎ </a>&nbsp;
+                                                        <a class="delete" href="#"
+                                                           data-id="{{ team_manager.id }}" data-handled_by="{{ team_manager.id }}">x</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        <tfoot>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">Youth Partner ID</th>
+                                            <th scope="col">Youth Partner</th>
+                                            <th scope="col">First Name</th>
+                                            <th scope="col">Last Name</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">E-Mail</th>
+                                            <th scope="col">Position</th>
+                                            <th scope="col">Notes</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div>No Team Managers</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="tab {% if current_tab == 'youth_employee' %}active{% endif %}" id="youth_roster">
+                    <div class="col-sm-12 pc-input-field">
+                        <div class="table-responsive" id="youth_roster_div"></div>
+                        {% if youth_employees %}
+                            <div class="column is-8 is-offset-2">
+                                <h3 class="title">Youth Roster</h3>
+                                <div class="">
+                                    <table class="table display responsive table-responsive table-bordered"
+                                           style="width: 100%;" id="youth_employee_table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">Youth Partner ID</th>
+                                            <th scope="col">Youth Partner</th>
+                                            <th scope="col">First Name</th>
+                                            <th scope="col">Last Name</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">E-Mail</th>
+                                            <th scope="col">Position</th>
+                                            <th scope="col">Notes</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for youth_employee in youth_employees %}
+                                            <tr>
+                                                <td>{{ loop.index }}</td>
+                                                <td>{{ youth_employee.id }}</td>
+                                                <td>{{ youth_employee.youth_partner.id }}</td>
+                                                <td>{{ youth_employee.youth_partner.name }}</td>
+                                                <td>{{ youth_employee.first_name }}</td>
+                                                <td>{{ youth_employee.last_name }}</td>
+                                                <td>{{ youth_employee.phone }}</td>
+                                                <td>{{ youth_employee.email }}</td>
+                                                <td>{{ youth_employee.position }}</td>
+                                                <td>{{ youth_employee.notes }}</td>
+                                                <td><a class="edit" href="#"
+                                                       data-id="{{ youth_employee.id }}" data-handled_by="{{ youth_employee.id }}" >✎ </a>&nbsp;
+                                                    <a class="delete" href="#"
+                                                       data-id="{{ youth_employee.id }}" data-handled_by="{{ youth_employee.id }}">x</a></td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                        <tfoot>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">Youth Partner ID</th>
+                                            <th scope="col">Youth Partner</th>
+                                            <th scope="col">First Name</th>
+                                            <th scope="col">Last Name</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">E-Mail</th>
+                                            <th scope="col">Position</th>
+                                            <th scope="col">Notes</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div>No Youth</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <div id="filter_div"></div>
+
+    <div class="modal fade" id="tableModalYouthPartner" tabindex="-1" role="dialog" aria-labelledby="tableModalLabelYouthPartner"
+         aria-hidden="true">
+        <div class="modal-dialog pc-maxwidth-600" role="document">
+            <div class="modal-content">
+                <form action="youth_partner" method="post" id="youth_partner_form">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tableModalLabelYouthPartner">Youth Partner</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table-responsive justify-content-center" style="display: grid; vertical-align: center;">
+                            <tr>
+                                <td><label for="name">Name:</label></td>
+                                <td><input type="text" name="name" id="name" value="" required/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="billing_rate">Billing Rate:</label></td>
+                                <td><input type="text" name="billing_rate" id="billing_rate" value="0"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="is_billed_by_partner">Billed By Partner:</label></td>
+                                <td><input type="checkbox" class="ml-2" id="is_billed_by_partner" name="is_billed_by_partner"></td>
+                            </tr>                            
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="youth_partner_id" id="youth_partner_id" value=""/>
+                        <input type="hidden" name="partner_action" id="partner_action" value="new"/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-grant">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="tableModalTeamManager" tabindex="-1" role="dialog" aria-labelledby="tableModalLabelTeamManager"
+         aria-hidden="true">
+        <div class="modal-dialog pc-maxwidth-600" role="document">
+            <div class="modal-content">
+                <form action="team_management" method="post" id="team_manager_form">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tableModalLabelTeamManager"></h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table-responsive justify-content-center" style="display: grid;">
+                            <tr>
+                                <td><label for="youth_partner_id" class="pr-3">Youth Partner:</label></td>
+                                <td>
+                                    <select class="custom-select" name="youth_partner_id" id="tm_youth_partner_id" required>
+                                        {% for youth_partner in youth_partners %}
+                                        <option value="{{ youth_partner.id }}">{{ youth_partner.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="first_name" class="pr-3">First Name:</label></td>
+                                <td><input type="text" name="first_name" id="tm_first_name" value=""/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="last_name">Last Name:</label></td>
+                                <td><input type="text" name="last_name" id="tm_last_name" value="" required/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="phone">Phone:</label></td>
+                                <td><input type="text" name="phone" id="tm_phone" value="" required/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="email">E-Mail:</label></td>
+                                <td><input type="email" name="email" id="tm_email" value="" required/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="position">Position:</label></td>
+                                <td><input type="text" name="position" id="tm_position" value=""/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="notes">Notes:</label></td>
+                                <td><input type="text" name="notes" id="tm_notes" value=""/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="team_manager_id" id="team_manager_id" value=""/>
+                        <input type="hidden" name="manager_action" id="manager_action" value="new"/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-grant">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="tableModalYouthEmployee" tabindex="-1" role="dialog" aria-labelledby="tableModalLabelYouthEmployee"
+         aria-hidden="true">
+        <div class="modal-dialog pc-maxwidth-600" role="document">
+            <div class="modal-content">
+                <form action="youth_employee" method="post" id="youth_employee_form">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tableModalLabelYouthEmployee"></h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body justify-content-center" style="display: grid;">
+                        <table class="table-responsive">
+                            <tr>
+                                <td><label for="youth_partner_id" class="pr-3">Youth Partner:</label></td>
+                                <td>
+                                    <select class="custom-select" name="youth_partner_id" id="emp_youth_partner_id" required>
+                                        {% for youth_partner in youth_partners %}
+                                        <option value="{{ youth_partner.id }}">{{ youth_partner.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="first_name" class="pr-3">First Name:</label></td>
+                                <td><input type="text" name="first_name" id="emp_first_name" value="" required/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="last_name">Last Name:</label></td>
+                                <td><input type="text" name="last_name" id="emp_last_name" value="" required/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="phone">Phone:</label></td>
+                                <td><input type="text" name="phone" id="emp_phone" value=""/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="email">E-Mail:</label></td>
+                                <td><input type="email" name="email" id="emp_email" value="" required/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="position">Position:</label></td>
+                                <td><input type="text" name="position" id="emp_position" value=""/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="notes">Notes:</label></td>
+                                <td><input type="text" name="notes" id="emp_notes" value=""/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="youth_emp_id" id="youth_emp_id" value=""/>
+                        <input type="hidden" name="emp_action" id="emp_action" value="new"/>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" id="btn-grant">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            let tm_table = $('#team_manager_table').DataTable(
+                {
+                    paging: false,
+                    responsive: true,
+                    columnDefs: [
+                        {
+                            targets: [1,2],
+                            visible: false,
+                            searchable: false
+                        }
+                    ]
+                });
+            let yp_table = $('#youth_partner_table').DataTable(
+                {
+                    paging: false,
+                    responsive: true,
+                    columnDefs: [
+                        {
+                            targets: [1],
+                            visible: false,
+                            searchable: false
+                        }
+                    ]
+                });
+            var groupColumn = 3
+            let ye_table = $('#youth_employee_table').DataTable(
+                {
+                    displayLength: 25,
+                    responsive: true,
+                    columnDefs: [
+                        {
+                            targets: [0,1,2,groupColumn],
+                            visible: false,
+                            searchable: false
+                        }
+                    ],
+                    order: [[groupColumn,'asc']],
+                    drawCallback: function( settings ) {
+                        var api = this.api();
+                        var rows = api.rows( {page:'current'} ).nodes();
+                        var last=null;
+            
+                        api.column(groupColumn, {page:'current'} ).data().each( function ( group, i ) {
+                            if ( last !== group ) {
+                                $(rows).eq( i ).before(
+                                    '<tr class="group"><td colspan="5" class="font-weight-bold"> Youth Partner: '+group+'</td></tr>'
+                                );
+            
+                                last = group;
+                            }
+                        });
+                    },
+                });
+            $('#youth_partner_table tbody').on('click', 'td', function (e) {
+                window.eee = e;
+                row = yp_table.row(this)
+                var data = row.data();
+                if (data === undefined) {
+                    // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+                    var hiddenNode = $(this.parentNode).prev()[0].children[0];
+                    data = yp_table.row(hiddenNode).data();
+                }
+                window.ddd = data;
+                if (e.target.classList.contains('delete')) {
+                    id = e.target.dataset.id
+                    if(confirm("Are you sure to delete " + id + "?")) {
+                        $.ajax({
+                            url: "youth_partner",
+                            type: "post",
+                            beforeSend: function (xhr, settings) {
+                                console.log("Going to delete " + id);
+                                $("#loadingImage").show();
+                            },
+                            data: {
+                                partner_action: 'delete',
+                                youth_partner_id: id
+                            },
+                            success: function (response) {
+                                console.log(response);
+                                row.remove().draw()
+                                alert("Youth Partner record deleted successfully.");
+                            },
+                            error: function (xhr) {
+                                console.log('there was an error')
+                                console.log(xhr);
+                            },
+                            complete: function (xhr, textStatus) {
+                                console.log(textStatus);
+                                $("#loadingImage").hide();
+                                window.location = window.location.href;
+                            }
+                        });
+                    }
+                    return true
+                }
+                if (e.target.classList.contains('edit')) {
+                    $("#youth_partner_id").val(data[1])
+                    $("#name").val(data[2])
+                    $("#billing_rate").val(data[3])
+                    if(data[4] == 'YES'){
+                        $("#is_billed_by_partner").prop('checked', true)
+                        $("#is_billed_by_partner").val(0)
+                    }else{
+                        $("#is_billed_by_partner").prop('checked', false)
+                        $("#is_billed_by_partner").val(1)
+                    }
+                    $("#partner_action").val("edit")
+                    $("#tableModalLabelYouthPartner").html("Edit youth partner");
+                    $("#tableModalYouthPartner").modal('show');
+                    return false;
+                }
+            });
+            $('#team_manager_table tbody').on('click', 'td', function (e) {
+                window.eee = e;
+                row = tm_table.row(this)
+                var data = row.data();
+                if (data === undefined) {
+                    // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+                    var hiddenNode = $(this.parentNode).prev()[0].children[0];
+                    data = tm_table.row(hiddenNode).data();
+                }
+                window.ddd = data;
+                if (e.target.classList.contains('delete')) {
+                    id = e.target.dataset.id
+                    if(confirm("Are you sure to delete " + id + "?")) {
+                        $.ajax({
+                            url: "team_management",
+                            type: "post",
+                            beforeSend: function (xhr, settings) {
+                                console.log("Going to delete " + id);
+                                $("#loadingImage").show();
+                            },
+                            data: {
+                                manager_action: 'delete',
+                                team_manager_id: id
+                            },
+                            success: function (response) {
+                                console.log(response);
+                                row.remove().draw()
+                                alert("Team manager record deleted successfully.");
+                            },
+                            error: function (xhr) {
+                                console.log('there was an error')
+                                console.log(xhr);
+                            },
+                            complete: function (xhr, textStatus) {
+                                console.log(textStatus);
+                                $("#loadingImage").hide();
+                                window.location = window.location.href;
+                            }
+                        });
+                    }
+                    return true
+                }
+                if (e.target.classList.contains('edit')) {
+                    $("#team_manager_id").val(data[1])
+                    $("#tm_youth_partner_id").val(data[2]).change()
+                    $("#tm_first_name").val(data[4])
+                    $("#tm_last_name").val(data[5])
+                    $("#tm_phone").val(data[6])
+                    $("#tm_email").val(data[7])
+                    $("#tm_position").val(data[8])
+                    $("#tm_notes").val(data[9])
+                    $("#manager_action").val("edit")
+                    $("#tableModalLabelTeamManager").html("Edit team manager");
+                    $("#tableModalTeamManager").modal('show');
+                    return false;
+                }
+            });       
+            $('#youth_employee_table tbody').on('click', 'td', function (e) {
+                window.eee = e;
+                row = ye_table.row(this)
+                var data = row.data();
+                if (data === undefined) {
+                    // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+                    var hiddenNode = $(this.parentNode).prev()[0].children[0];
+                    data = tm_table.row(hiddenNode).data();
+                }
+                window.ddd = data;
+                if (e.target.classList.contains('delete')) {
+                    id = e.target.dataset.id
+                    if(confirm("Are you sure to delete " + id + "?")) {
+                        $.ajax({
+                            url: "youth_employee",
+                            type: "post",
+                            beforeSend: function (xhr, settings) {
+                                console.log("Going to delete " + id);
+                                $("#loadingImage").show();
+                            },
+                            data: {
+                                emp_action: 'delete',
+                                youth_emp_id: id
+                            },
+                            success: function (response) {
+                                console.log(response);
+                                row.remove().draw()
+                                alert("Youth Employee record deleted successfully.");
+                            },
+                            error: function (xhr) {
+                                console.log('there was an error')
+                                console.log(xhr);
+                            },
+                            complete: function (xhr, textStatus) {
+                                console.log(textStatus);
+                                $("#loadingImage").hide();
+                                window.location = window.location.href;
+                            }
+                        });
+                    }
+                    return true
+                }
+                if (e.target.classList.contains('edit')) {
+                    $("#youth_emp_id").val(data[1])
+                    $("#emp_youth_partner_id").val(data[2])
+                    $("#emp_first_name").val(data[4])
+                    $("#emp_last_name").val(data[5])
+                    $("#emp_phone").val(data[6])
+                    $("#emp_email").val(data[7])
+                    $("#emp_position").val(data[8])
+                    $("#emp_notes").val(data[9])
+                    $("#emp_action").val("edit")
+                    $("#tableModalLabelYouthEmployee").html("Edit youth employee");
+                    $("#tableModalYouthEmployee").modal('show');
+                    return false;
+                }
+            });
+            function addYouthPartner() {
+                $("#youth_partner_form").get(0).reset();
+                $("#tableModalLabelYouthPartner").html("Add a new Youth Partner");
+                $("#tableModalYouthPartner").modal('show');
+            }
+
+            function addTeamManager() {
+                $("#team_manager_form").get(0).reset();
+                $("#tableModalLabelTeamManager").html("Add a new Team Manager");
+                $("#tableModalTeamManager").modal('show');
+            }
+
+            function addYouthEmployee() {
+                $("#youth_employee_form").get(0).reset();
+                $("#tableModalLabelYouthEmployee").html("Add a new Youth Employee");
+                $("#tableModalYouthEmployee").modal('show');
+            }
+
+            $(document).on('click', "#btn-add-youth-partner", addYouthPartner);
+            $(document).on('click', "#btn-add-team-manager", addTeamManager);
+            $(document).on('click', "#btn-add-youth-roster", addYouthEmployee);
+
+            $("#is_billed_by_partner").on('change', function(e){
+                $("#is_billed_by_partner").val(Number(this.checked))
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,224 @@
+<!-- templates/employee_detail.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">Employee Details</h3>
+        <div class="box">
+            <hr>
+            <h5>Employment Docs</h5>
+            <table class="table table-borderless" id="tbl-emp-dtl">
+                <thead class="thead-light">
+                    <tr class="text-center">
+                        <th class="text-left">Document Name</th>
+                        <th>Submitted Status (by Employee)</th>
+                        <th>Sign</th>
+                        <th>Preview</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in employement_doc_list %}
+                    <tr class="text-center">
+                        <td class="text-left">
+                            {{ doc.doc_name }}
+                        </td>
+                        <td>
+                            {% if doc.id in submitted_doc_ids %}
+                            <p class="text-success"> Submitted </p>
+                            {% else %}
+                            <p class="text-danger"> Pending </p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.id in submitted_doc_ids %}
+                                {% if doc.id in signed_doc_ids %}
+                                <p class="text-success"> Signed </p>
+                                {% else %}
+                                <button type="button" class="btn btn-primary pdfTron-launch" data-file="{{ doc.file_name }}" data-id="{{ doc.id }}" data-name="{{ doc.doc_name }}">Sign</button>
+                                {% endif %}
+                            {% else %}
+                            <p class="text-danger"> Pending from Employee side </p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.id in submitted_doc_ids %}
+                            <a href="/upload/employee_data/{{ emp_id }}/employment_docs/{{ doc.file_name }}?v={{ range(1, 51) | random }}" target="_blank">
+                                <i class="fa fa-eye"></i>
+                            </a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <hr>
+
+            <h5 class="title">Additional Documents</h5>
+            <div class="box">
+                <table class="table table-borderless">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Document Name</th>
+                            <th>Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in additional_doc_list %}
+                        <tr class="text-center">
+                            <td class="text-left">
+                                {{ doc.doc_name }}
+                            </td>
+                            <td>
+                                <a href="/upload/employee_data/{{ emp_id }}/additional_docs/{{ doc.doc_file }}?v={{ range(1, 51) | random }}" target="_blank">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="fillPdf-modal" tabindex="-1" role="dialog" aria-labelledby="tableModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" style="min-width:98%;">
+            <div class="modal-content" >
+               <div class="modal-body" id="pdfTron-body" style=' height: 700px;'>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src='{{ site_url }}/pdftron/lib/webviewer.min.js'></script>
+    <script>
+        function deleteDoc(id, name) {
+              if (confirm("Are you sure to delete row \"" + name + "\" with ID " + id + "?")) {
+                  $.ajax({
+                    url: "/emp/my-doc",
+                    type: "post",
+                    beforeSend: function (xhr, settings) {
+                        console.log("Going to delete " + id);
+                        $("#loadingImage").show();
+                    },
+                    data: {
+                        emplmnt_form_action: 'delete',
+                        doc_id: id
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        alert(response.message);
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                        $("#loadingImage").hide();
+                        window.location = window.location.href;
+                    }
+                  });
+              }
+          }
+
+    $(document).ready(function () {
+
+        $('#tbl-emp-dtl').DataTable({
+            paging: false,
+            responsive: true,
+            columnDefs: [
+                { responsivePriority: 1, targets: 0 },
+                { responsivePriority: 2, targets: 3 },
+            ]
+        });
+            
+        doc_path = '/upload/employee_data/' + {{ emp_id }} + '/employment_docs/'
+
+        WebViewer({
+            path: '{{ site_url }}/pdftron/lib',
+            licenseKey: 'Insert commercial license key here after purchase',
+        }, document.getElementById('pdfTron-body'))
+        .then(instance => {
+
+            $('.pdfTron-launch').on('click', function (argument) {
+                file_name = this.dataset.file
+                doc_id = this.dataset.id
+                doc_name = this.dataset.name
+                file_url = doc_path + file_name
+                random_ver = (""+Math.random()).substring(2,7)
+                instance.UI.loadDocument(file_url + '?v=' + random_ver);
+                $("#fillPdf-modal").modal('show');
+            });
+
+            const { documentViewer, annotationManager } = instance.Core;
+            annotPosition = 0
+
+            const Tools = instance.Core.Tools;
+            const Annotations = instance.Core.Annotations;          
+
+            instance.UI.setHeaderItems(header => {
+                header.push({
+                    type: 'actionButton',
+                    img: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>',
+                    onClick: async () => {
+                        documentViewer.getAnnotationsLoadedPromise().then( async () => {
+                            fieldManager = annotationManager.getFieldManager();
+                            
+                            const doc = documentViewer.getDocument();
+                            const xfdfString = await annotationManager.exportAnnotations();
+                            const data = await doc.getFileData({
+                                // saves the document with annotations in it
+                                xfdfString
+                            });
+                            const arr = new Uint8Array(data);
+                            const blob = new Blob([arr], {
+                                type: 'application/pdf'
+                            });
+                            
+                            const preparedData = new FormData();
+                            preparedData.append('doc_id', doc_id);
+                            preparedData.append('emplmnt_form_action', 'submit');
+                            preparedData.append('doc_name', doc_name);
+                            preparedData.append('doc_file', blob, file_name);
+                            preparedData.append('is_signed', 1);
+                            
+                            preparedData.append('is_ajax', 1);
+                            const req = new XMLHttpRequest();
+                            req.open("POST", '/employee-management/employee-detail/{{ emp_id }}', true);
+                            req.responseType = 'json';
+                            req.onload = function (oEvent) {
+                                console.log(oEvent.target.status)
+                                if (oEvent.target.status == 200) {
+                                    $("#fillPdf-modal").modal('hide');
+                                    window.location = window.location.href;
+                                } else {
+                                    alert('Error: ' +oEvent.target.response.message)
+                                }
+                            };
+                            req.send(preparedData);
+                        });
+                    }
+                });
+            });
+
+            documentViewer.addEventListener('documentLoaded', () => {
+                
+            });
+        });
+
+    });
+  </script>
+{% endblock %}

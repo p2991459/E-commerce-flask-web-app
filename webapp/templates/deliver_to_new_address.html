@@ -1,0 +1,96 @@
+<!-- templates/delivery_planner.html -->
+
+{% extends "new_base.html" %}
+{% block content %}
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+    <style>
+    .success-message {
+    text-align: center;
+    background: green;
+    padding: 20px;
+    color: white;
+    font-weight: bold;
+}
+    .content {
+      max-width: 500px;
+      margin: auto;
+      text-align: center;
+      padding: 20px;
+    }
+    .form{
+        margin-top: 30px;
+    }
+
+    .form input {
+        margin-left: 16px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+
+    .form label {
+        margin-bottom: 0 !important;
+    }
+/*
+    .form td {
+        text-align: right;
+    }*/
+    .left {
+        width: 150px;
+        text-align: right;
+    }
+    #main-content {
+        padding-top: 20px;
+    }
+    </style>
+    {% if messages %}
+    <div class="success-message">
+    {{ messages }}
+    </div>
+    {% endif %}
+    <div class="dp-main content">
+        <img src="/img/ssb-logo.jpg" alt="Southside Blooms logo"/>
+        {% if delivery_date %}
+            <h1>Your delivery is scheduled on <b>{{ delivery_date }}</b>.</h1><br/>
+        {% endif %}
+        <section>
+            <h3>The current shipping address is :<br/><b>{{ delivery_address }}</b></h3>
+        </section>
+        <section id="main-content">
+        <div>Please input the fields below to update your shipping address.</div>
+            <form action="/deliver-to-new-address/{{ change_location_hash }}" method="post" class="form">
+                <table>
+                    <tr>
+                        <td class="left"><label for="user_email">Billing Email</label></td><td><input id="user_email" type="email" name="user_email" {% if user_email %}value="{{ user_email }}" readonly onclick='return false;' {% endif %} /></td>
+                    </tr>
+                    <tr>
+                        <td class="left"><label for="order_id">Order ID</label></td><td><input id="order_id" name="order_id" {% if order_id %}value="{{ order_id }}" readonly onclick='return false;' {% endif %} /></td>
+                    </tr>
+                    <tr>
+                        <td class="left"><label for="new_delivery_date">New Shipping Details</label></td><td>
+                        <input id="shipping_name" type="text" placeholder="Shipping Name" name="shipping_name" />
+                        <input id="shipping_address_1" type="text" placeholder="Shipping Address 1" name="shipping_address_1" />
+                        <input id="shipping_address_2" type="text" placeholder="Shipping Address 2" name="shipping_address_2" />
+                        <input id="shipping_zip" type="text" placeholder="Shipping Zip" name="shipping_zip" />
+                        <input id="shipping_city" type="text" placeholder="Shipping City" name="shipping_city" />
+                        <input id="shipping_state" type="text" placeholder="Shipping State" name="shipping_state" />
+                        <input id="shipping_phone" type="text" placeholder="Shipping Phone" name="shipping_phone" />
+                        <input id="shipping_email" type="text" placeholder="Shipping Email" name="shipping_email" />
+                    </td>
+                    </tr>
+                    <tr><td colspan="2">&nbsp;</td></tr>
+                    <tr><td colspan="2" style="text-align: center"><input type="submit" name="Submit" value="Submit" /></td></tr>
+                </table>
+            </form>
+        </section>
+    </div>
+    <script>
+        $(document).ready(function () {
+            let message = '{{ show_message }}';
+            if(message) {
+                let mc = $("#main-content");
+                mc.html(message);
+            }
+        });
+    </script>
+
+{% endblock %}

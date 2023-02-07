@@ -1,0 +1,77 @@
+{% extends "actual_base.html" %}
+{% block actual_content %}
+    {% include "_tab_styles.html" %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Get labels / tags for a product</h1>
+    </div>
+
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-12 mb-8">
+
+            <!-- Project Card -->
+            <div class="card shadow mb-8">
+                <div class="card-header py-6">
+                    <h6 class="m-0 font-weight-bold text-primary">Enter
+                        details</h6>
+                </div>
+                <div class="card-body">
+                    <input type="radio" name="label_or_tag" value="labels" id="labels" checked aria-checked="true" />&nbsp;<label for="labels">Labels</label>&nbsp;&nbsp;&nbsp;
+                    <input type="radio" name="label_or_tag" value="tags" id="tags" />&nbsp;<label for="tags">Tags</label>
+                </div>
+                <div class="card-body">
+                    <div class="tabs">
+                    <ul class="tabs-list">
+                        <li class="active"><a href="#routific">Routific</a></li>
+                        <li><a href="#squarespace">Squarespace</a></li>
+                    </ul>
+                    <div class="tab active" id="routific">
+                        <div class="col-sm-12 pc-input-field">
+                            <label for="project_name">Select a project</label>
+                            <select name="routific-project-id"
+                                    id="routific-project-id" class="form-control col-sm-7 col-xs-10">
+                                {% for p in data.projects %}
+                                    {% if p.routific_project_id == '5f5eeefcac034800172121f8' %}
+                                        <option value="{{ p.routific_project_id }}">
+                                            DELIVER LATER
+                                        </option>
+                                    {% else %}
+                                        <option value="{{ p.routific_project_id }}">{{ p.routific_project_name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tab" id="squarespace"
+                         style="display: none;">
+                        <div class="col-sm-12 pc-input-field">
+                            <label for="productId">Select a product</label>
+                            <select name="productId" id="productId" class="form-control col-sm-7 col-xs-10">
+                                {% for product in data.data %}
+                                    <option value="{{ product.productId }}">{{ product.product_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <label for="fulfilled" style="padding-top: 15px;">Fulfillment status</label>
+                            <div class="form-check">
+                                <label class="form-check-inline">
+                                    <input type="radio" class="form-check-input" name="fulfilled" value="pending_only" id="pending_only" checked/>Pending Only
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-inline">
+                                    <input type="radio" class="form-check-input" name="fulfilled" value="all" id="all"/>All
+                                </label>
+                            </div>
+                            <!--<input type="radio" name="fulfilled" value="pending_only" id="pending_only" checked/><label for="pending_only" style=" display: inline;">&nbsp;Pending only</label>
+                            <label for="all" style="display: inline;">&nbsp;All</label>-->
+                        </div>
+                    </div>
+                    <button id="btn-labels" class="btn btn-outline-dark">Get Labels / Tags</button>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

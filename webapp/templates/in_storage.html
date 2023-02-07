@@ -1,0 +1,237 @@
+{% extends "actual_base.html" %} {% block actual_content %}
+
+<!-- Content Column -->
+<div class="">
+    <!-- Project Card -->
+    <div class="row">
+        <div class="col-xl-6 col-md-6 col-sm-12 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Harvested</div>
+                            <div class="h5 mb-0 text-gray-600">Total Amount of Harvested Flowers</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="text-gray-900" style="font-size: 28px; font-weight: bold">{{ total_harvested_flower }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="pc-vertical-space"></div>
+
+    <div class="card shadow mb-8">
+        <div class="card-header py-6">
+            <h6 class="m-0 font-weight-bold text-primary">Storage</h6>
+        </div>
+        <div class="card-body">
+            <button type="button" class="btn btn-success mb-3" id="add_new_storage">Add new Storage Record</button>
+            <table class="table table-responsive table-bordered" id="storage_table" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th class="text-nowrap">Name</th>
+                        <th class="text-nowrap">Flower Name</th>
+                        <th class="text-nowrap">Amount In Storage</th>
+                        <th class="text-nowrap">Amount Harvested</th>
+                        <th class="text-nowrap">Expiration Tag</th>
+                        <th class="text-nowrap">Expiration Date</th>
+                        <th class="text-nowrap">Harvest Date</th>
+                        <th class="text-nowrap">Flower Type</th>
+                        <th class="text-nowrap">Time To Expire</th>
+                        <th class="text-nowrap">Harvest Goals</th>
+                        <th class="text-nowrap">Amount In Storage 1</th>
+                        <th class="text-nowrap">Decrease 1</th>
+                        <th class="text-nowrap">Amount In Storage 2</th>
+                        <th class="text-nowrap">Decrease 2</th>
+                        <th class="text-nowrap">Amount In Storage 3</th>
+                        <th class="text-nowrap">Decrease 3</th>
+                        <th class="text-nowrap">Amount In Storage 4</th>
+                        <th class="text-nowrap">Decrease 4</th>
+                        <th class="text-nowrap">Amount In Storage 5</th>
+                        <th class="text-nowrap">Decrease 5</th>
+                        <th class="text-nowrap">Amount In Storage 6</th>
+                        <th class="text-nowrap">Decrease 6</th>
+                        <th class="text-nowrap">Harvest Goal 2</th>
+                        <th class="text-nowrap">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for storage in storages %}
+                        <tr>
+                            <td>{{ storage.id }}</td>
+                            <td>{{ storage.name }}</td>
+                            <td>{{ storage.flower_name }}</td>
+                            <td>{{ storage.amt_in_storage }}</td>
+                            <td>{{ storage.amt_harvested }}</td>
+                            <td>{{ storage.exp_tag }}</td>
+                            <td>{{ storage.exp_date }}</td>
+                            <td>{{ storage.harvest_date }}</td>
+                            <td>{{ storage.flower_type }}</td>
+                            <td>{{ storage.time_to_expire }}</td>
+                            <td>{{ storage.harvest_goal }}</td>
+                            <td>{{ storage.amt_in_storage1 }}</td>
+                            <td>{{ storage.decrease1 }}</td>
+                            <td>{{ storage.amt_in_storage2 }}</td>
+                            <td>{{ storage.decrease2 }}</td>
+                            <td>{{ storage.amt_in_storage3 }}</td>
+                            <td>{{ storage.decrease3 }}</td>
+                            <td>{{ storage.amt_in_storage4 }}</td>
+                            <td>{{ storage.decrease4 }}</td>
+                            <td>{{ storage.amt_in_storage5 }}</td>
+                            <td>{{ storage.decrease5 }}</td>
+                            <td>{{ storage.amt_in_storage6 }}</td>
+                            <td>{{ storage.decrease6 }}</td>
+                            <td>{{ storage.harvest_goal2 }}</td>
+                            <td><a class="edit" href="#"
+                                data-id="{{ storage.id }}" data-handled_by="{{ storage.id }}" >✎ </a>&nbsp;
+                             <a class="delete" href="#"
+                                data-id="{{ storage.id }}" data-handled_by="{{ storage.id }}">x</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="storageModal" tabindex="-1" role="dialog" aria-labelledby="tableModalStorage"
+         aria-hidden="true">
+    <div class="modal-dialog pc-maxwidth-600" role="document">
+        <div class="modal-content">
+            <form action="storage" method="post" id="storage_form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tableModalLabelStorage">Storage</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <label for="flower" class="col-4">Flower</label>
+                        <select id="flower" name="flower" class="form-control col-7" required>
+                            <option selected>Select Flower Property</option>
+                            {% for flower in flower_properties %}    
+                                <option value='{{ flower.id }}'>{{ flower.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="amt_harvested" class="col-5">Amount Harvested</label>
+                        <input type="number" name="amt_harvested" id="amt_harvested" class="form-control col-5"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="amt_storage1" class="col-5">Amount In Storage 1</label>
+                        <input type="number" name="amt_in_storage1" id="amt_in_storage1" class="form-control col-5"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="amt_storage2" class="col-5">Amount In Storage 2</label>
+                        <input type="number" name="amt_in_storage2" id="amt_in_storage2" class="form-control col-5"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="amt_storage3" class="col-5">Amount In Storage 3</label>
+                        <input type="number" name="amt_in_storage3" id="amt_in_storage3" class="form-control col-5"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="amt_storage4" class="col-5">Amount In Storage 4</label>
+                        <input type="number" name="amt_in_storage4" id="amt_in_storage4" class="form-control col-5"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="amt_storage5" class="col-5">Amount In Storage 5</label>
+                        <input type="number" name="amt_in_storage5" id="amt_in_storage5" class="form-control col-5"/>
+                    </div>
+                    <div class="row mb-2">
+                        <label for="amt_storage6" class="col-5">Amount In Storage 6</label>
+                        <input type="number" name="amt_in_storage6" id="amt_in_storage6" class="form-control col-5"/>
+                    </div>                    
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="id" id="id"/>
+                    <input type="hidden" name="action" id="action" value="new"/>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="btn-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $("#add_new_storage").on('click', function(){
+        $("#storageModal").modal('show');
+    });
+    $('#storageModal').on('hidden.bs.modal', function (e) {
+        $("#storage_form").trigger('reset');
+    });
+    let fp_table = $('#storage_table').DataTable(
+        {
+            paging: false,
+            columnDefs: [
+                {
+                    targets: [0],
+                    visible: false,
+                    searchable: false
+                }
+            ]
+        });
+    $('#storage_table tbody').on('click', 'td', function (e) {
+        row = fp_table.row(this)
+        var data = row.data();
+        if (data === undefined) {
+            // probably we are in the mobile view => get sibling (which is hidden) and get data from there
+            var hiddenNode = $(this.parentNode).prev()[0].children[0];
+            data = yp_table.row(hiddenNode).data();
+        }
+        if (e.target.classList.contains('delete')) {
+            id = e.target.dataset.id
+            if(confirm("Are you sure to delete " + data[1] + "?")) {
+                $.ajax({
+                    url: "storage",
+                    type: "post",
+                    data: {
+                        action: "delete",
+                        id: id
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        row.remove().draw()
+                        alert("Flower storage "+ data[1] +" deleted successfully.");
+                    },
+                    error: function (xhr) {
+                        console.log('there was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                    }
+                });
+            }
+            return true
+        }
+        if (e.target.classList.contains('edit')) {
+            $("#id").val(data[0])
+            if(data[2]!=""){
+                sel_value=$("#flower option").filter(function(){
+                    return this.text == data[2]
+                }).val();
+                $("#flower").val(sel_value)
+            }
+            $("#amt_harvested").val(data[4])
+            $("#amt_in_storage1").val(data[11])
+            $("#amt_in_storage2").val(data[13])
+            $("#amt_in_storage3").val(data[15])
+            $("#amt_in_storage4").val(data[17])
+            $("#amt_in_storage5").val(data[19])
+            $("#amt_in_storage6").val(data[21])
+            $("#action").val("edit")
+            $("#tableModalLabelStorage").html("Edit storage record");
+            $("#storageModal").modal('show');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

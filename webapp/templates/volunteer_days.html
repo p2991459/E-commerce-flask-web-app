@@ -1,0 +1,451 @@
+{% extends "actual_base.html" %} 
+{% block actual_content %}
+<style>
+.org_event {
+    background: #ff6347;
+    width: 15px;
+    height: 15px;
+    float: left;
+    margin-right: 4px;
+    margin-top: 4px;
+}
+.open_event {
+    background-color: #3788d8;
+    width: 15px;
+    height: 15px;
+    float: left;
+    margin-right: 4px;
+    margin-top: 4px;
+}
+.youth_event {
+    background-color: Green;
+    width: 15px;
+    height: 15px;
+    float: left;
+    margin-right: 4px;
+    margin-top: 4px;
+}
+.legend {
+    border:1px solid; 
+    display: inline-flex; 
+    margin: 0 auto;
+}
+.virt-line {
+    border-left: 1px solid;
+    height: 35px;
+    padding-right: 10px;
+    margin-left: 10px;
+}
+.rain-ico {
+    margin-bottom: -5px;
+    position: relative;
+    top: -2px;  
+}
+.precipitation-text {
+    font-size: 0.75rem;
+    position: relative;
+    top: -5px;
+}
+.weather-widget.show {
+  overflow:hidden;
+  transition:transform 0.5s ease-out; 
+  height:auto;
+  transform:scaleY(1);
+  transform-origin:top;
+}
+.weather-widget{
+  height: 0;
+  transform:scaleY(0);
+}
+</style>
+<div style="text-align: center;width:100%" class="pb-2">
+<fieldset class="legend">
+    <div class="inner_div_no_fix_width"> Event Types: </div>
+    <div class="inner_div_no_fix_width"><span class="open_event" title="Open"></span> Open</div>
+    <div class="inner_div_no_fix_width"><span class="org_event" title="Organization"></span>Organization</div>
+    <div class="inner_div_no_fix_width"><span class="youth_event" title="youth_event"></span>Youth Group</div>
+</fieldset>
+</div>
+<div id="volunteer_days_calendar">
+</div>
+<div id="volunteer_day_detail" class="modal fade">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="weather-widget">
+                    <div class="text-center row">
+                        <div class="offset-md-5 offset-4 pr-0">
+                            <i class="fa fa-2x fa-sun"></i>
+                        </div>
+                        <div class="pl-0" style="font-size:0.75rem">
+                            <span class="fa fa-angle-up"></span>
+                            <span class="m-0" id="temp-max"></span>&#8457;
+                            <br>
+                            <span class="fa fa-angle-down"></span>
+                            <span class="m-0" id="temp-min"></span>&#8457;
+                        </div>
+                        <div class="virt-line"></div>
+                        <div class="">
+                            <i class="fa fa-cloud-rain rain-ico"></i>
+                            <p class="precipitation-text"><span id="prec"></span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="vol_day_form" method="post" action="volunteer_days_events" role="form">
+                    <input type="hidden" name="vol_day_id" id="vol_day_id" value="">
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">
+                            <label class="control-label">Date and Time</label>
+                            <input type="text" id="vday_date" class="form-control input-lg" name="vday_date" value="" required />
+                        </div>
+                        <div class="col-6">
+                            <label for="event_type">Event Type</label>
+                            <select class="form-control" id="event_type" name="event_type">
+                                <option value="OP">Open</option>
+                                <option value="BO">By Organization</option>
+                                <option value="YG">Youth Group</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">
+                            <label for="recurring">Recurring</label>
+                            <select class="form-control" id="recurring" name="recurring">
+                                <option value="NO_REPEAT">Does not repeat</option>
+                                <option value="DAILY">Daily</option>
+                                <option value="WEEKLY">Weekly</option>
+                                <option value="MONTHLY">Monthly</option>
+                                <option value="ANNUALLY">Annually</option>
+                                <option value="WEEKDAY">Every weekday(Monday to Friday)</option>
+                                <option value="CUSTOM">Custom</option>
+                            </select>
+                        </div>
+                        <div class="col-6" id="future_event_edit">
+                            <label for="edit_recurring_event">Edit recurring event</label>
+                            <div class="form-check">
+                                <input type="radio" name="edit_recurring_event" id="single" value="single" class="" />&nbspThis Event
+                                <input type="radio" name="edit_recurring_event" id="all" value="all" class=""  >&nbspThis and following event</input>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">
+                            <label class="control-label">Site Location</label>
+                            <input type="text" id="site_location" class="form-control input-lg" name="site_location" value="">
+                        </div>
+                        <div class="col-6">   
+                            <label class="control-label">Youth Group E-Mail</label>
+                            <input type="email" id="youth_email" class="form-control input-lg" name="youth_email" value="" disabled>
+                        </div>
+                        
+                    </div>
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">
+                            <label class="control-label">Group Name</label>
+                            <input type="text" id="group_name" class="form-control input-lg" name="group_name" value="">
+                        </div>
+                        <div class="col-6">
+                            <label class="control-label">Group Phone No.</label>
+                            <input type="text" id="group_phone_number" class="form-control" name="group_phone_number" value="">
+                        </div>
+                    </div>
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">   
+                            <label class="control-label">Group E-Mail</label>
+                            <input type="email" id="group_email" class="form-control input-lg" name="group_email" value="">
+                        </div>
+                        <div class="col-6">
+                            <label class="control-label">No. Of Volunteers</label>
+                            <input type="text" id="no_of_volunteer" class="form-control input-lg" name="no_of_volunteer" value="">
+                        </div>
+                    </div>
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">
+                            <label class="control-label">Task</label>
+                            <input type="text" id="task" class="form-control " name="task" value="">
+                        </div>
+                        <div class="col-6">
+                            <label class="control-label">Site Manager</label>
+                            <input type="text" id="sm_name" class="form-control input-lg" name="sm_name" value="">
+                        </div>
+                    </div>
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">
+                            <label class="control-label">Site Manager Phone</label>
+                            <input type="text" id="sm_phone_number" class="form-control input-lg" name="sm_phone_number" value="">
+                        </div>
+                        <div class="col-6">
+                            <label class="control-label">Site Manager E-Mail</label>
+                            <input type="email" id="sm_email" class="form-control input-lg" name="sm_email" value="">
+                        </div>
+                    </div>
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">
+                        <label class="control-label">Organization Name</label>
+                            <input type="text" id="org_name" class="form-control input-lg" name="org_name" value="">
+                        </div>
+                        <div class="col-6">
+                            <label class="control-label">Organization Contact</label>
+                            <input type="text" id="org_contact" class="form-control input-lg " name="org_contact" value="">
+                        </div>
+                    </div>
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">
+                            <label class="control-label">Organization E-Mail</label>
+                            <input type="email" id="org_email" class="form-control input-lg" name="org_email" value="">
+                        </div>
+                        <div class="col-6">
+                            <label class="control-label">Organization Phone</label>
+                            <input type="text" id="org_phone_number" class="form-control input-lg" name="org_phone_number" value="">
+                        </div>
+                    </div>
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-6">
+                            <label class="control-label">Organization Website</label>
+                            <input type="text" id="org_website" class="form-control input-lg" name="org_website" value="">
+                        </div>
+                        <div class="col-6">
+                            <label class="control-label">Notes</label>
+                            <input type="text" id="notes" class="form-control input-lg" name="notes" value="">
+                        </div>
+                    </div>                        
+                    <div class="form-row">
+                        <input type="hidden" name="action" id="action" value="new"/>
+                        <div class="col-6">
+                            <button type="button" id="delete_event" class="btn btn-danger">Delete</button>
+                        </div>
+                        <div class="text-right col-6">
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                            <button type="submit" class="btn btn-success">Save</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal" id="confirm_delete_event" data-backdrop="static">
+	<div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h4 class="modal-title">Delete recurring events</h4>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-check">
+                    <input type="radio" name="delete_recurring_event" id="single" value="single" class="form-check-input" checked/>
+                    <label class="form-check-label" for="single">This Event</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" name="delete_recurring_event" id="all" value="all" class="form-check-input" />
+                    <label class="form-check-label" for="all">This and following event</label> 
+            
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" data-dismiss="modal" class="btn">Cancel</a>
+                <a href="#" class="btn btn-primary" id="delete_event_ok">OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function ordinal_suffix_of(i){
+        var j = i % 10, k = i % 100;
+        if(j == 1 && k != 11){
+            return "first";
+        }
+        if(j == 2 && k != 12){
+            return "second";
+        }
+        if(j == 3 && k != 13){
+            return "third";
+        }
+        return "fourth";
+    }
+    function generateDropDown(date){
+        weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+        $("#recurring").empty();
+        $("#recurring").append("<option value='NO_REPEAT'>Does not repeat</option>")
+        $("#recurring").append("<option value='DAILY'>Daily</option>")
+        day = weekday[date.getDay()]
+        $("#recurring").append("<option value='WEEKLY'>Weekly on "+ day +"</option>")
+        n = Math.ceil(date.getDate()/7)
+        $("#recurring").append("<option value='MONTHLY'>Monthly on the "+ ordinal_suffix_of(n) + " "+ day +"</option>")
+        $("#recurring").append("<option value='ANNUALLY'>Annually on " + months[date.getMonth()] + " " + date.getDate() +"</option>")
+        $("#recurring").append("<option value='WEEKDAY'>Every weekday(Monday to Friday)</option>")
+        $("#recurring").append("<option value='CUSTOM'>Custom</option>")
+    }
+    var calendar;
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('volunteer_days_calendar');
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events:'vdays_calendar_events',
+            customButtons: {
+                addbutton: {
+                    text: 'Add Volunteer Day',
+                    click: function() {
+                        $('#volunteer_day_detail').modal('toggle')
+                    }             
+                }
+            },
+            eventDisplay: "block",
+            headerToolbar: {
+                center:'addbutton'
+            },
+            eventClick: function(info) {
+                loadDataAndOpenVDayEventEditModal(info.event)
+            },
+            dateClick: function(info) {
+                var date = new Date(info.date)
+                var formattedDate = (date.getMonth() + 1) + '-' + date.getDate() + '-' + date.getFullYear()
+                $("#vday_date").val(formattedDate+" 00:00")
+                generateDropDown(date)
+                $('#volunteer_day_detail').modal('toggle')
+            },
+            themeSystem: 'bootstrap'
+        });
+        calendar.render();
+    });
+
+    function getWeatherWidget(date, location) {
+        $('.weather-widget').removeClass('show')
+        $.ajax({
+            url: "get_weather",
+            type: "get",
+            data: {
+                'date':date,
+                'location':location
+            },
+            success: function (response) {
+                if (response.result) {
+                    res = response.result
+                    $('#temp-max').html(res.max)
+                    $('#temp-min').html(res.min)
+                    $('#prec').html(res.prec / 10 + ' cm, (' +  (res.prec / 25.4).toFixed(2) + ' inches)')
+                    $('.weather-widget').addClass('show')
+                }
+            }
+        });
+    }
+    $(document).ready(function() {
+        $("#vday_date").datetimepicker({
+            defaultDate:new Date(),
+            step:30,
+            format:'m-d-Y H:i'
+        });
+
+        $('#volunteer_day_detail').on('hidden.bs.modal', function (e) {
+            $('input[name="edit_recurring_event"]').prop('required',false)
+            $("#vol_day_form").get(0).reset();
+            $('#vol_day_id').val("")
+            $('.weather-widget').removeClass('show');
+        });
+
+        $("#vday_date").change(function(){
+            generateDropDown($("#vday_date").datetimepicker('getValue'));
+        });
+
+        $('#event_type').change(function(){
+            if($(this).val() == "YG"){
+                $("#youth_email").removeAttr("disabled");
+            }else{
+                $("#youth_email").val("")
+                $("#youth_email").attr("disabled", "disabled");
+            }
+        });
+
+        //if event is deleted but its not recurring just delete the event otherwise show confirmation box for recurring event
+        $('#delete_event').on('click', function(){
+            if($("#recurring_type").val() == 'NO_REPEAT'){
+                deleteEvent()
+            }else{
+                $("#delete_single").prop("checked", true)
+                $("#confirm_delete_event").modal("toggle")
+            }
+        })
+
+        // fetch weather data based on date & Zipcode...
+        $('#vday_date, #site_location').on('change', function() {
+            dt = $('#vday_date').val()
+            loc = $('#site_location').val()
+            getWeatherWidget(dt, loc)
+        });
+        // if recurring popup displayed select the option and delete event based on the response
+        $("#delete_event_ok").on('click', function(){
+            deleteEvent()
+            $("#confirm_delete_event").modal("toggle")
+        });
+        $("#future_event_edit").hide()
+        $("#confirm_delete_event").hide()
+    })
+
+    function deleteEvent(){
+        id = $('#vol_day_id').val()
+        $.ajax({
+            url: "volunteer_days_events",
+            type: "post",
+            data: {
+                vol_day_id:id,
+                action:'delete',
+                edit_recurring_event:$("input[name=delete_recurring_event]:checked").val()
+            },
+            success: function (response) {
+                console.log(response);
+                alert("Record Deleted Successfully.");
+                //calendar.getEventById(id).remove();
+                calendar.refetchEvents()
+                $('#volunteer_day_detail').modal('toggle')
+            },
+            error: function (xhr) {
+                console.log('there was an error')
+                console.log(xhr);
+            },
+            complete: function (xhr, textStatus) {
+                console.log(textStatus);
+            }
+        });
+    }
+    function loadDataAndOpenVDayEventEditModal(event){
+        $('#vol_day_id').val(event.id)
+        $('#vday_date').val(event.title)
+        $('#site_location').val(event.extendedProps.site_location)
+        $('#group_name').val(event.extendedProps.group_name)
+        $('#group_email').val(event.extendedProps.group_email)
+        $('#group_phone_number').val(event.extendedProps.group_phone_number)
+        $('#no_of_volunteer').val(event.extendedProps.no_of_volunteer)
+        $('#task').val(event.extendedProps.tasks)
+        $('#sm_name').val(event.extendedProps.sm_name)
+        $('#sm_phone_number').val(event.extendedProps.sm_phone_number)
+        $('#sm_email').val(event.extendedProps.sm_email)
+        $('#org_name').val(event.extendedProps.org_name)
+        $('#org_contact').val(event.extendedProps.org_contact)
+        $('#org_email').val(event.extendedProps.org_email)
+        $('#org_phone_number').val(event.extendedProps.org_phone_number)
+        $('#org_website').val(event.extendedProps.org_website)
+        $('#notes').val(event.extendedProps.notes)
+        $('#event_type').val(event.extendedProps.event_type)
+        if($("#event_type").val() == "YG"){
+            $("#youth_email").removeAttr("disabled");
+        }else{
+            $("#youth_email").val("")
+            $("#youth_email").attr("disabled", "disabled");
+        }
+        $('#youth_email').val(event.extendedProps.youth_email)        
+        $("#vday_date").datetimepicker({value:event.title})
+        generateDropDown($("#vday_date").datetimepicker('getValue'))
+        $("#recurring").val(event.extendedProps.recurring_type)
+        $('input[name="edit_recurring_event"]').prop('required',true)
+        if(event.extendedProps.recurring_type != 'NO_REPEAT'){
+            $("#future_event_edit").show()
+        }
+        $('#action').val('edit')
+        $('#volunteer_day_detail').modal('toggle')
+
+        getWeatherWidget(event.title, event.extendedProps.site_location)
+    }
+</script>
+{% endblock %}

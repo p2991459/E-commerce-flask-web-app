@@ -1,0 +1,124 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="column is-8 is-offset-2">
+        <h3 class="title">Volunteer Events</h3>
+        <div class="box">
+            <table class="table table-borderless" id="volunteer_days_events">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Date and Time</th>
+                        <th>Group</th>
+                        <th>Organization</th>
+                        <th>No. of Subscriber</th>
+                        <th>Invite Link</th>
+                        <th>Clone Event</th>
+                        <th>Go to Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event, subs_count in volunteer_events %}
+                    <tr>
+                        <td>
+                            {{ event.vday_date}}
+                        </td>
+                        <td>
+                            {{ event.group_name}}
+                        </td>
+                        <td>
+                            {{ event.org_name}}
+                        </td>
+                        <td>
+                            {{ subs_count }}
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" data-link="{{ site_url }}/signup_volunteer_day/{{ event.uuid}}" title="Copy Link" onclick="copyToClipboard(this)">
+                                <i class="fa fa-copy"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="clone_event_button" title="Clone Event" onclick="fillAndOpenCopyEventModal({{ event.id }})">
+                                <i class="fa fa-clone"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <a class="btn btn-primary" href="{{ site_url }}/volunteer_subscribers/{{ event.id}}" target="_blank">
+                                <i class="fa fa-external-link-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal fade" id="clone_volunteer_day">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="vday_clone_form" method="post" action="clone_volunteer_day" role="form">
+                <div class="modal-header">
+                    <h4 class="modal-title">Clone Voluteer day</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row pt-1 pb-1">
+                        <div class="col-12">
+                            <label class="control-label col-4">Date and Time</label>
+                            <input type="text" id="clone_date" name="clone_date" value="" required />
+                        </div>
+                    </div>                        
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="source_event_id" id="source_event_id" value="">
+                    <button type="reset" class="btn btn-secondary">Reset</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {           
+            $("#clone_date").datetimepicker({
+                defaultDate:new Date(),
+                step:30,
+                format:'m-d-Y H:i'
+            });
+
+            $('#volunteer_days_events').DataTable(
+            {
+                paging: false,
+                order: [[0,'desc']]
+            });
+        });
+        
+        function fillAndOpenCopyEventModal(source_event_id){
+            $("#source_event_id").val(source_event_id)
+            $("#clone_volunteer_day").modal("toggle")
+        }
+        
+        function copyToClipboard(elem) {
+            var $inv_link = $(elem).data('link');
+            navigator.clipboard.writeText($inv_link).then(function() {
+                var originalText = elem.innerHTML;
+                console.log(originalText)
+                elem.innerHTML = 'Copied!';
+                setTimeout(function(){
+                    elem.innerHTML = originalText;
+                }, 750);
+            }, function() {
+                elem.style.cssText = "background-color: var(--red);";
+                elem.innerHTML = 'Error';
+            });
+        }
+    </script>
+
+{% endblock %}

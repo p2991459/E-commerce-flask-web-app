@@ -1,0 +1,441 @@
+<!-- templates/settings.html -->
+{% extends "actual_base.html" %}
+
+{% block actual_content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="notification bg-success text-white" style="padding: 10px; margin: 0 0 10px 0;">
+    {{ messages[0] }}
+</div>
+{% endif %}
+{% endwith %}
+<style>
+    .cal-legend {
+        display: inline-flex;
+        line-height: 0.6;
+    }
+    .cal-legend > div {
+        margin: 0 2px; 
+    }
+@media (max-width: 767.98px) {
+    .fc .fc-toolbar.fc-header-toolbar {
+        display: block;
+        text-align: center;
+    }
+
+    .fc-header-toolbar .fc-toolbar-chunk {
+        display: block;
+        margin: 2px auto;
+    }
+}
+</style>
+<div class="column is-8 is-offset-2">
+    <div class="mb-2">
+        <h3 class="title" style="display: inline-block;">Vehicle Request</h3>
+    </div>
+    <div class="box">
+    </div>
+</div>
+<div class="text-center">
+    <fieldset class="cal-legend">
+        <div class="fc-daygrid-event-dot" style="border-color:#99cc33"></div> Approved
+        <div class="fc-daygrid-event-dot" style="border-color:#ffa700"></div> Pending
+        <div class="fc-daygrid-event-dot" style="border-color:#ff0000"></div> Rejected
+    </fieldset>
+
+</div>
+<div id="vehicle-requests-calendar"></div>
+
+<!-- modal -->
+<div class="modal fade" id="VehicleRequestModal" tabindex="-1" role="dialog" aria-labelledby="VehicleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog pc-maxwidth-600" role="document">
+        <div class="modal-content">
+            <form action="vehicle_request" class="cls-request-form" id="request_form" method="post">
+                <input type="hidden" id="request_id">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="VehicleModalLabel">Request a Vehicle</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="name">Name</label>
+                                    <input type="text" required class="form-control" id="name" name="name" placeholder="Name" disabled>
+                                  </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="date">Date</label>
+                                    <input type="text" class="form-control" name="date" id="date" placeholder="MM-DD-YYYY" disabled>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="vehicle_id">Vehicle Needed</label>
+                                    <select class="form-control" name="vehicle_id" id="vehicle_id" required>
+                                        <option></option>
+                                        {% for vcl in vehicle_list %}
+                                        <option value="{{vcl.id}}">{{vcl.name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="pickup_time">Pickup Date Time</label>
+                                    <input type="text" class="form-control" name="pickup_time" id="pickup_time">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="return_time">Return Date Time</label>
+                                    <input type="text" class="form-control" name="return_time" id="return_time">
+                                  </div>
+                            </div>
+                            <div class="col-md-12" id="approved-div" style="display: none;">
+                                {% if is_admin %}
+                                <div class="form-group">
+                                    <label for="reminder_email" >Approved</label>
+                                    <div class="form-check form-check-inline">
+                                        <input type="radio"  class="appr_btn" id="app_yes" name="approved" value="1" />
+                                        <label class="form-check-label" for="app_yes">  Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input type="radio"  class="appr_btn" id="app_no" name="approved" value="0" />
+                                        <label class="form-check-label" for="app_no">  No</label>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="form-group">
+                                    <label for="reminder_email" >Approved: </label>
+                                    <span id="approve_status" class="badge"></span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger mr-auto" id="delete_vehicle_request">
+                        <i class="fa fa-trash"></i> Delete</button>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="submit" id="save_vehicle_request">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // fullcalendar implementation
+    var calendar;
+    var currentUser = '{{current_user.name}}'
+    var t = new Date()
+    var today =  ('0'+(t.getMonth()+1)).slice(-2) + '-' + 
+                    ('0' + t.getDate()).slice(-2) + '-' + 
+                    t.getFullYear();
+    {% if is_admin %}
+    var isAdmin = 1
+    {% else %}
+    var isAdmin = 0
+    {% endif %}
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var calElm = document.getElementById('vehicle-requests-calendar')
+        calendar = new FullCalendar.Calendar(calElm, {
+            events:'/vehicle/veh_request_calendar_list',
+            selectable: true,
+            allDaySlot: false,
+            slotEventOverlap: false,
+            initialView: 'timeGrid',
+            dayCount: 8,
+            customButtons: {
+                addbutton: {
+                    text: 'Add Vehicle Request',
+                    click: function() {
+                        $('#date').val(today)
+                        $('#name').val(currentUser)
+                        $('#VehicleRequestModal').modal('toggle')
+                    }             
+                }
+            },
+            eventDisplay: "block",
+            headerToolbar: {
+              left: 'prev,next today',
+              center: 'addbutton',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            height: 'auto',
+            dateClick: function (info) {
+                date = info.date 
+                allDay = info.allDay 
+                jsEvent = info.jsEvent 
+                view = info.view
+
+                if (info.view.type == 'dayGridMonth') {
+                    calendar.changeView('timeGridWeek');
+                    calendar.gotoDate(date)
+                }
+            },
+            select: function(info) {
+                // console.log(info)
+
+                if (info.view.type != 'dayGridMonth') {
+                    s = info.start
+                    e = info.end
+                    var start_d =  ('0'+(s.getMonth()+1)).slice(-2) + '-' +
+                                    ('0' + s.getDate()).slice(-2) + '-' +
+                                    s.getFullYear() + ' ' + 
+                                    ('0' + s.getHours()).slice(-2) + ':' + 
+                                    ('0' + s.getMinutes()).slice(-2);
+                    var end_d =  ('0'+(e.getMonth()+1)).slice(-2) + '-' + 
+                                    ('0' + e.getDate()).slice(-2) + '-' + 
+                                    e.getFullYear() + ' ' + 
+                                    ('0' + e.getHours()).slice(-2) + ':' + 
+                                    ('0' + e.getMinutes()).slice(-2);
+                    
+                    $('#pickup_time').val(start_d)
+                    $('#return_time').val(end_d)
+                    $('#date').val(today)
+                    $('#name').val(currentUser)
+                    $('#VehicleRequestModal').modal('toggle')
+                }
+            },
+            eventClick: function(info) {
+                loadDataAndOpenRequestEditModal(info.event)
+            },              
+        });
+        calendar.render();
+    });
+
+
+    $(document).ready(function() {
+        $('#pickup_time, #return_time').datetimepicker({
+            defaultDate:new Date(),
+            step:30,
+            format:'m-d-Y H:i'
+        });
+
+        $('#VehicleRequestModal').on('hidden.bs.modal', function (e) {
+            $('.cls-request-form').get(0).reset()
+            $('#approved-div').hide()
+            $('#approve_status').removeClass('badge-success badge-warning badge-danger')
+            $('.modal-footer').show()
+            $('#request_form_edit').attr('id', 'request_form')
+        });
+
+        // submit request for new
+        $(document).on('submit','#request_form',function(e){
+            e.preventDefault()
+            var formData = {
+                'name':$('#name').val(),
+                'date':$('#date').val(),
+                'vehicle_id':$('#vehicle_id').val(),
+                'date_needed':$('#date_needed').val(),
+                'pickup_time':$('#pickup_time').val(),
+                'return_time':$('#return_time').val(),
+            }
+
+            if (isAnOverlapEvent(formData)) {
+                return 
+            }
+            $.ajax({
+                type:'POST',
+                url:'/vehicle/vehicle_request',
+                data:JSON.stringify(formData),
+                contentType: 'application/json; charset=utf-8',
+                traditional: true,
+                dataType: 'json',
+                encode: true,
+                success: function (response) {
+                    if (response.status == 201) {
+
+                        calendar.addEvent({
+                            id: response.insert_id,
+                            title: $('#vehicle_id option:selected' ).text(),
+                            start: strToDate(formData.pickup_time),
+                            end: strToDate(formData.return_time),
+                            color: '#ffa700',
+                            extendedProps: formData,
+                        });
+                        $('#VehicleRequestModal').modal('hide')
+                    } else {
+                        alert('Something went wrong.')
+                    }
+                },
+                error: function (ex) {
+                    alert(ex);
+                }
+            }) 
+        });
+
+
+        // Update existing
+        $(document).on('submit','#request_form_edit',function(e){
+            e.preventDefault()
+            var id = $('#request_id').val()
+            var formData = {
+                'id':id,
+                'name':$('#name').val(),
+                'date':$('#date').val(),
+                'vehicle_id':$('#vehicle_id').val(),
+                'date_needed':$('#date_needed').val(),
+                'pickup_time':$('#pickup_time').val(),
+                'return_time':$('#return_time').val(),
+                'approved':$('input[name="approved"]:checked').val(),
+            }
+
+            // time validation
+            if (strToDate(formData.pickup_time) >= strToDate(formData.return_time)) {
+                alert('Return Time must be greater.')
+                return
+            }
+
+            if (isAnOverlapEvent(formData)) {
+                return 
+            }
+            $.ajax({
+                type:'PUT',
+                url:'/vehicle/update_vehicle_request' + '/' + id,
+                data:JSON.stringify(formData),
+                contentType: 'application/json; charset=utf-8',
+                traditional: true,
+                dataType: 'json',
+                encode: true,
+                success: function (response) {
+                    $('#VehicleRequestModal').modal('hide');
+                    if (response.status == 200) {
+                        if (formData.approved == 1) {
+                            var clr = '#99cc33'
+                        } else if (formData.approved == 0) {
+                            var clr = '#ff0000'
+                        } else {
+                            var clr = '#ffa700'
+                        }
+                        calendar.getEventById(id).remove();
+                        calendar.addEvent({
+                            id: id,
+                            title: $('#vehicle_id option:selected' ).text(),
+                            start: strToDate(formData.pickup_time),
+                            end: strToDate(formData.return_time),
+                            color: clr,
+                            extendedProps: formData,
+                        });
+                        $('#VehicleRequestModal').modal('hide')
+                    } else {
+                        alert('Something went wrong.')
+                    }
+                },
+                error: function (ex) {
+                    alert(ex);
+                }
+            }) 
+        });
+        
+        
+        $('#delete_vehicle_request').on('click', function(e){
+            e.preventDefault()
+            if(confirm('Are you sure to delete Vehicle Request?')){
+                id = $('#request_id').val()
+                $.ajax({
+                    url: '/vehicle/delete_vehicle_request'+ '/' + id,
+                    type: 'delete',
+                    success: function (response) {
+                        console.log(response);
+                        calendar.getEventById(id).remove();
+                        $('#VehicleRequestModal').modal('hide')
+                    },
+                    error: function (xhr) {
+                        alert('There was an error')
+                        console.log(xhr);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log(textStatus);
+                    }
+                });
+            }
+        })
+
+    });
+
+    // Event Click Handler
+    function loadDataAndOpenRequestEditModal(event) {
+        console.log(event)
+        data = event.extendedProps
+        $('#name').val(data['name']);
+        $('#date').val(data['date']);
+        $('#vehicle_id').val(data['vehicle_id']);
+        $('#date_needed').val(data['date_needed']);
+        $('#pickup_time').val(data['pickup_time']);
+        $('#return_time').val(data['return_time']);
+        $('#approved').val(data['approved']);
+        if (data['approved'] == '1') {
+            $('.appr_btn[value="1"]').prop('checked',true);
+        } else if (data['approved'] == '0') {
+            $('.appr_btn[value="0"]').prop('checked',true);
+        } else {
+            $('.appr_btn').prop('checked',false);
+        }
+        $('.cls-request-form').attr('id', 'request_form_edit')
+        $('#request_id').val(event.id)
+        $('#approved-div').show()
+        if (data['approved'] == 1) {
+            $('#approve_status').html('Yes')
+            $('#approve_status').addClass('badge-success')
+            if (!isAdmin) {
+                $('.modal-footer').hide()
+            }
+        } else if(data['approved'] == 0) {
+            $('#approve_status').html('No')
+            $('#approve_status').addClass('badge-danger')
+            if (!isAdmin) {
+                $('.modal-footer').hide()
+            }
+        } else {
+            $('#approve_status').html('Pending')
+            $('#approve_status').addClass('badge-warning')
+        }
+        $("#VehicleRequestModal").modal('show'); 
+    }
+
+    function isAnOverlapEvent(new_data) {
+        if (new_data['approved'] != 1) {
+            return false
+        }
+        existing_events = calendar.getEvents()
+        new_event_id = new_data['id']
+        new_start = strToDate(new_data.pickup_time)
+        new_end = strToDate(new_data.return_time)
+        overlapFlag = false
+        e = existing_events.forEach(function(e) {
+            eProp = e.extendedProps
+            if (
+                (e.id != new_event_id)          // event can overlap itself (at edit)
+                && (eProp.approved ==  1)       // Only for approved request
+                && (eProp.vehicle_id == new_data.vehicle_id)  // only for same vehicle
+                && (
+                    (e.start >= new_start && e.start < new_end)
+                     || (new_start > e.start && new_start < e.end)
+                    )  
+                ) {
+                console.log(eProp)
+                alert('Request Overlapping: ' + eProp.name)
+                overlapFlag = true
+            }
+        });
+        console.log(overlapFlag)
+        return overlapFlag
+    }
+
+    function strToDate(dtString) {
+        dtString = dtString.replace(/-/g, '/')
+        return new Date(dtString)
+    }
+</script>
+{% endblock %}
